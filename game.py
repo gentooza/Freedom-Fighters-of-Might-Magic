@@ -46,11 +46,11 @@ RIGHT = 'right'
 
 class Minimap(object):
     
-    def __init__(self):
+    def __init__(self,(coordinate_x, coordinate_y), (size_x, size_y)):
         
         # The minimap is a subsurface upon which the whole world is projected.
         self.mini_screen = View(
-            State.screen.surface, pygame.Rect(600, 25, 100, 100))
+            State.screen.surface, pygame.Rect(coordinate_x, coordinate_y, size_x, size_y))
         
         # tiny_rect will be drawn on the minimap to indicate the visible area of
         # the world (the screen, aka camera).
@@ -113,14 +113,13 @@ class gameScene(Engine):
         print features['resolution']
         self.movement = 0
  
-    def setScreen(self,screen,FPS):
+    def setScreen(self,screen):
         self.screen = screen
-        self.FPS = FPS
         
     def constructScene(self):
-        Engine.__init__(self,self.screen,self.features['resolution'],0,self.features['strcaption'],None,None,None,None, self.features['tile_size'], self.features['map_size'],self.FPS)
+        Engine.__init__(self,self.screen,self.features['resolution'],0,self.features['strcaption'],None,None,None,None, self.features['tile_size'], self.features['map_size'],self.features['FPS'])
       
-        self.minimap = Minimap()
+        self.minimap = Minimap(self.features['minimap_pos'],self.features['minimap_size'])
 
         toolkit.make_tiles()
         for tile in self.map.layers[0].objects.objects:

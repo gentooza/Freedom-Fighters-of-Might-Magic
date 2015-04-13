@@ -31,6 +31,7 @@ All the artwork is the battle for wesnoth artwork, not from FFMM, so it's licens
 
 [web page of "battle for wesnoth"](http://www.wesnoth.org/)
 
+
 ##license
 
 Freedom Fighters of Might & Magic is licensed under the GNU GPL3

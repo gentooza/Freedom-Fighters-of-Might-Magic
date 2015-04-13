@@ -72,7 +72,7 @@ class app:
 				if(ret == 1):
 					print "LET'S PLAY FMM!!"
 					scr_game = game.gameScene(self.parameters)
-					scr_game.setScreen(self.screen,30)
+					scr_game.setScreen(self.screen)
 					scr_game.constructScene()
 					print 'in game!!'
 					gummworld2.run(scr_game)
@@ -98,9 +98,12 @@ resolution = (800,600)
 strCaption = 'FFMM v0.0.1 ALPHA'
 tile_size=(30, 30) 
 map_size=(100, 100)
+minimap_pos = (600,100)
+minimap_size = (120,120)
+FPS = 40
 NULL = 'NULL'
 
-parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size}
+parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS}
 FFMM = app(parameters)
 
 #DISPLAY
