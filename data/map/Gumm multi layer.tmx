@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="20" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="desert" tilewidth="32" tileheight="32" spacing="1" margin="1">
+  <image source="../image/tmw/tmw_desert_spacing.png" width="265" height="199"/>
+ </tileset>
+ <layer name="Layer 0" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJyTY2BgkBvFo3gUj+JRPIpJxADoji7h
+  </data>
+ </layer>
+ <layer name="Layer 1" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjZGBgYAJiZgbcgJGAGmR5TiDmAmJuPOYRUoMsLwjEQkAsjMc8QmqIMWMUDA9AKK0So2Y0PY8CcsFIS38APDcDKw==
+  </data>
+ </layer>
+ <layer name="Layer 2" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYKAdkMeBCakZBaNgMILR9DwKBhIMxvQHAFi4BAA=
+  </data>
+ </layer>
+ <layer name="Layer 3" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBh5QIHKZoyaN7jMG2lAgcpmjJpHmXkjCQAAwjgCwQ==
+  </data>
+ </layer>
+ <layer name="Layer 4" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBi5gA2I2UnEHHjM4wNifhKxwBA2TwyIxUnEEnjMGwWUAUkgliIRS+MxTxGIlUjEykPYPE0g1iIRa+MxbyQAAJljDWc=
+  </data>
+ </layer>
+ <layer name="Layer 5" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBg6QB2JVsehRh8JMyDRgxlgcyMu/5ELBpN5+OJEHQtG10tsHBMyC5uZ9AQKODAhNaNgaAAFHJiQmqEEADObB8M=
+  </data>
+ </layer>
+</map>

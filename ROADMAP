@@ -1,0 +1,25 @@
+V0.0.2 current
+---------------------
+- setting minimap from initialization (size and place) (not inside class minimap)
+- our creature as hero class, not as thing in things (of the engine)
+- insert another animated sprite in screen
+- increase fps
+- investigate an advanced hud
+- investigate world_editor from gummworld2
+
+V0.0.1 2015/04/13
+---------------------
++ insert gunmworld2 in project
++ make a basic map from a repeated tile
++ our creature visible followed by the camera
++ minimap
+= move minimap
+
+V0.0.0 2015/04/09
+---------------------
++ basic main menu screen
++ basic game screen with our creature inside
++ our creature can move animated
++ insert pyganim in project
++ insert pygbutton in project
+

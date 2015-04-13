@@ -1,0 +1,11 @@
+rect 0 40 20 20
+user_data tile%200%20grass1.png%0A
+rect 20 0 20 20
+user_data tile%200%20grass1.png%0A
+rect 20 20 20 20
+user_data tile%200%20grass1.png%0A
+rect 0 20 20 20
+user_data tile%200%20grass1.png%0A
+polyect 0 20 20 20
+user_data tile%200%20grass1.png%0A
+poly
