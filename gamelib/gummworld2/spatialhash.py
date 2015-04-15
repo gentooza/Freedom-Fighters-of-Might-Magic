@@ -50,7 +50,7 @@ import pygame
 from pygame.locals import Rect
 
 if __name__ == '__main__':
-    import paths
+    from . import paths
 
 from gummworld2 import geometry
 
@@ -102,7 +102,7 @@ class SpatialHash(object):
                 self.dirty = False
             return self.sorted_objects[:]
         else:
-            return self.cell_ids.keys()
+            return list(self.cell_ids.keys())
     
     def add(self, obj):
         """Add or re-add obj. Return True if in bounds, else return False.
@@ -151,8 +151,8 @@ class SpatialHash(object):
                 try:
                     buckets[idx].append(obj)
                 except IndexError:
-                    print('IndexError: buckets[{0}]'.format(idx))
-                    print('len(buckets): {0}'.format(len(buckets)))
+                    print(('IndexError: buckets[{0}]'.format(idx)))
+                    print(('len(buckets): {0}'.format(len(buckets))))
             self_cell_ids[obj] = cell_ids
             all_good = all_good and cell_ids == True
         return all_good
@@ -271,7 +271,7 @@ class SpatialHash(object):
                 cell_ids[cell_id] = 1
         
 #        return list(cell_ids)
-        return cell_ids.keys()
+        return list(cell_ids.keys())
     
     def intersect_objects(self, rect):
         """Return list of objects whose rects intersect rect.
@@ -444,7 +444,7 @@ class SpatialHash(object):
                         except AttributeError:
                             pass
         self.coll_tests = tests
-        return collisions.keys()
+        return list(collisions.keys())
     
     def collideallflatlist(self, rect=None):
         """Return flat list of all collisions.

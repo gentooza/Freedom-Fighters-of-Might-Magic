@@ -4,7 +4,7 @@
 """
 
 try:
-    from StringIO import StringIO
+    from io import StringIO
 except:
     from io import StringIO
 
@@ -14,7 +14,7 @@ import pygame
 try:
     from configparser import ConfigParser
 except:
-    from ConfigParser import ConfigParser
+    from configparser import ConfigParser
 
 from .const import *
 from . import widget

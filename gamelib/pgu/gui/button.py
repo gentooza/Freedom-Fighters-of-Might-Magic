@@ -79,7 +79,7 @@ class Button(_button):
 
     @value.setter
     def value(self, val):
-        if (isinstance(val, basestring)):
+        if (isinstance(val, str)):
             # Allow the choice of font to propagate to the button label
             params = {}
             if (self.style.font):

@@ -48,7 +48,7 @@ import pygame
 from pygame.locals import *
 
 if __name__ == '__main__':
-    import paths
+    from . import paths
 
 from gummworld2 import (
     State, Context, Screen, View, BasicMap, Camera, GameClock,
@@ -194,8 +194,8 @@ class Engine(Context):
             self.map = BasicMap(map_size[0], map_size[1], tile_size[0], tile_size[1])
         else:
             if __debug__:
-                print('Engine: SKIPPING map creation:' +
-                      ' no map, tile_size, or map_size')
+                print(('Engine: SKIPPING map creation:' +
+                      ' no map, tile_size, or map_size'))
         
         ## If you want to use the camera target as a world entity, you have to
         ## use the right object type. Type checking and exception handling are
@@ -243,8 +243,8 @@ class Engine(Context):
             self.camera = Camera(self.camera_target, camera_view)
         else:
             if __debug__:
-                print('Engine: SKIPPING camera creation:' +
-                      ' no camera target, view, or view rect')
+                print(('Engine: SKIPPING camera creation:' +
+                      ' no camera target, view, or view rect'))
         
         ## Create the clock, specifying callbacks for update() and draw().
         if __debug__:
@@ -265,7 +265,7 @@ class Engine(Context):
             if __debug__:
                 print('Engine: copying my objects to State')
             self.set_state()
-    
+ 
     def enter(self):
         """Called when the context is entered.
         
@@ -348,7 +348,9 @@ class Engine(Context):
         for e in self._get_pygame_events():
             typ = e.type
             if typ == KEYDOWN:
-                self.on_key_down(e.unicode, e.key, e.mod)
+                #removed e.str python3 doesn't like it
+		#by gentooza 2015-04-14
+                self.on_key_down(e.key, e.mod)
             elif typ == KEYUP:
                 self.on_key_up(e.key, e.mod)
             elif typ == MOUSEMOTION:
@@ -385,7 +387,7 @@ class Engine(Context):
     def on_joy_button_down(self, joy, button): pass
     def on_joy_button_up(self, joy, button): pass
     def on_joy_hat_motion(self, joy, hat, value): pass
-    def on_key_down(self, unicode, key, mod): pass
+    def on_key_down(self, key, mod): pass
     def on_key_up(self, key, mod): pass
     def on_mouse_button_down(self, pos, button): pass
     def on_mouse_button_up(self, pos, button): pass
@@ -434,7 +436,7 @@ if __name__ == '__main__':
                     State.camera.view.parent_rect, 1)
             pygame.display.flip()
 
-        def on_key_down(self, unicode, key, mod):
+        def on_key_down(self, str, key, mod):
             if key == K_DOWN:
                 self.movey += self.speed
             elif key == K_UP:

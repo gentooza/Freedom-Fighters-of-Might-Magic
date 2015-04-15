@@ -159,6 +159,7 @@ from gummworld2 import (
     GameClock, Vec2d,
 )
 import gui
+from functools import reduce
 
 
 # These lambdas place points at calculated positions given a bounding rect. This
@@ -214,7 +215,7 @@ class GeomColors(object):
         if obj in hover: return v['h']
         return v['n']
     
-    def next(self):
+    def __next__(self):
         self.which += 1
         if self.which == len(self.values):
             self.which = 0
@@ -1214,7 +1215,7 @@ class MapEditor(object):
         """Return True if the mouse is hovering over a GUI widget.
         """
         # I know accessing _attrs frowned upon, but gui.Form doesn't work right.
-        for name,widget in self.gui_form._emap.items():
+        for name,widget in list(self.gui_form._emap.items()):
             if widget.is_hovering():
                 return widget
         for menu in self.gui_form['menus'].widgets:
@@ -2004,7 +2005,7 @@ class MapEditor(object):
         for e in events:
             typ = e.type
             if typ == KEYDOWN:
-                self.on_key_down(e, e.unicode, e.key, e.mod)
+                self.on_key_down(e, e.str, e.key, e.mod)
             elif typ == KEYUP:
                 self.on_key_up(e, e.key, e.mod)
             elif typ == MOUSEMOTION:
@@ -2023,7 +2024,7 @@ class MapEditor(object):
         
     # MapEditor.get_events
     
-    def on_key_down(self, e, unicode, key, mod):
+    def on_key_down(self, e, str, key, mod):
         """Handler for KEYDOWN events.
         """
         # Intercept RETURN and ESCAPE for convenient switch between map-editing
@@ -2061,10 +2062,10 @@ class MapEditor(object):
             elif key == K_v and mod & KMOD_CTRL:
                 self.action_shape_paste()
             elif key == K_TAB:
-                GEOM_COLORS.next()
+                next(GEOM_COLORS)
             elif key == K_SPACE:
                 for name in self.gui_form._emap:
-                    print('{0} {1}'.format(name, self.gui_form._emap[name]))
+                    print(('{0} {1}'.format(name, self.gui_form._emap[name])))
                 print('## --------')
 #            else:
 #                print 'Key down', pygame.key.name(key)

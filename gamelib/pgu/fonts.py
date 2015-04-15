@@ -73,8 +73,8 @@ class TileFont:
             if c in self.chars:
                 if c not in colored:
                     img = self.chars[c].convert_alpha()
-                    for yy in xrange(0,th):
-                        for xx in xrange(0,tw):
+                    for yy in range(0,th):
+                        for xx in range(0,tw):
                             r,g,b,a = img.get_at((xx,yy))
                             if a > 128:
                                 img.set_at((xx,yy),color)

@@ -10,7 +10,7 @@ if (sys.version_info[0] < 3):
     from htmllib import HTMLParser
 else:
     # Import the new html.parser module
-    from html.parser import HTMLParser
+    from .html.parser import HTMLParser
     htmllib = None
 
 import re
@@ -448,7 +448,7 @@ class _html(HTMLParser):
             else:
                 self.item.add(w)
         except:
-            print('handle_image: missing %s'%src)
+            print(('handle_image: missing %s'%src))
                 
     def handle_data(self,txt):
         if self.type == 'table': return 
@@ -491,7 +491,7 @@ if (sys.version_info[0] >= 3):
     def handle_starttag(this, tag, attrs):
         func = getattr(this, "start_" + tag, None)
         if (not func):
-            print("ERROR - unrecognized tag %s" % tag)
+            print(("ERROR - unrecognized tag %s" % tag))
             return
         func(attrs)
 
@@ -559,8 +559,8 @@ class HTML(gui.Document):
 
     # Returns a box (pygame rectangle) surrounding all widgets in this document
     def get_bounding_box(this):
-        minx = miny = sys.maxint
-        maxx = maxy = -sys.maxint
+        minx = miny = sys.maxsize
+        maxx = maxy = -sys.maxsize
         for e in this.layout.widgets:
             minx = min(minx, e.rect.left)
             miny = min(miny, e.rect.top)
@@ -578,7 +578,7 @@ def render_ext(font, rect, text, aa, color, bgcolor=(0,0,0,0), **params):
 
     if (rect == -1):
         # Make the surface large enough to fit the rendered text
-        htm.resize(width=sys.maxint)
+        htm.resize(width=sys.maxsize)
         (width, height) = htm.get_bounding_box().size
         # Now set the proper document width (computed from the bounding box)
         htm.resize(width=width)

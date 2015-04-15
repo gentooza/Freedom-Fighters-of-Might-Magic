@@ -158,7 +158,7 @@ def init_joystick(joy_id=-1):
     if joy_id in range(pygame.joystick.get_count()):
         joy_ids = [joy_id]
     elif joy_id == -1:
-        joy_ids = range(pygame.joystick.get_count())
+        joy_ids = list(range(pygame.joystick.get_count()))
     else:
         raise pygame.error('Invalid joystick device number: %d' % joy_id)
     for joy_id in joy_ids:
@@ -188,14 +188,14 @@ def get_font(name='default'):
     cache.
     """
     global _fonts
-    if len(_fonts.keys()) == 0:
+    if len(list(_fonts.keys())) == 0:
         _init_fonts()
     return _fonts[name]
 
 
 def get_font_names():
     """Return a list of existing font names."""
-    return _fonts.keys()
+    return list(_fonts.keys())
 
 
 def make_font(name, file_name, font_size, bold=False, italic=False):
@@ -207,7 +207,7 @@ def make_font(name, file_name, font_size, bold=False, italic=False):
     Arguments mirror those of pygame.font.SysFont().
     """
     global _fonts
-    if len(_fonts.keys()) == 0:
+    if len(list(_fonts.keys())) == 0:
         _init_fonts()
     _fonts[name] = pygame.font.Font(file_name, font_size)
     if bold:
@@ -226,7 +226,7 @@ def make_sysfont(name, font_name, font_size, bold=False, italic=False):
     Arguments mirror those of pygame.font.SysFont().
     """
     global _fonts
-    if len(_fonts.keys()) == 0:
+    if len(list(_fonts.keys())) == 0:
         _init_fonts()
     _fonts[name] = pygame.font.SysFont(font_name, font_size, bold, italic)
     return _fonts[name]
@@ -254,9 +254,9 @@ def import_module(fullname):
     try:
         __import__(shortname)
     except ImportError:
-        print("No {0}.py found in module path:".format(shortname))
+        print(("No {0}.py found in module path:".format(shortname)))
         for p in sys.path:
-            print("   {0}".format(p))
+            print(("   {0}".format(p)))
         sys.exit()
     return sys.modules[shortname]
 
@@ -415,8 +415,8 @@ def load_image(name, colorkey=None, alpha=False):
             image = pygame.image.load(name)
             _IMAGE_CACHE[name] = image
         except pygame.error as message:
-            print('Cannot load image: ' + name)
-            raise(pygame.error, message)
+            print(('Cannot load image: ' + name))
+            raise pygame.error
     if alpha:
         image = image.convert_alpha()
     else:

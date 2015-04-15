@@ -84,6 +84,6 @@ class Form(widget.Widget):
     
     def items(self):
         """Return a list of name, widget pairs."""
-        return self.results().items()
+        return list(self.results().items())
     
 

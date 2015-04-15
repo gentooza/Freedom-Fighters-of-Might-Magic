@@ -28,7 +28,7 @@ __all__ = ['View', 'Screen']
 import pygame
 
 if __name__ == '__main__':
-    import paths
+    from . import paths
 
 from gummworld2 import State, Vec2d
 

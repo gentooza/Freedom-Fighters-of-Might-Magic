@@ -139,7 +139,7 @@ class Vid:
     """
     
     def __init__(self):
-        self.tiles = [None for x in xrange(0,256)]
+        self.tiles = [None for x in range(0,256)]
         self.sprites = _Sprites()
         self.images = {} #just a store for images.
         self.layers = None
@@ -162,8 +162,8 @@ class Vid:
         """
         self.size = size
         w,h = size
-        self.layers = [[[0 for x in xrange(0,w)] for y in xrange(0,h)]
-            for z in xrange(0,4)]
+        self.layers = [[[0 for x in range(0,w)] for y in range(0,h)]
+            for z in range(0,4)]
         self.tlayer = self.layers[0]
         self.blayer = self.layers[1]
         if not bg: self.blayer = None
@@ -342,14 +342,14 @@ class Vid:
             if not s in self.groups:
                 self.groups[s] = 2**len(self.groups)
         v = 0
-        for s,n in self.groups.items():
+        for s,n in list(self.groups.items()):
             if s in igroups: v|=n
         return v
 
     def groups2list(self,groups):
         """Convert a groups to a list."""
         v = []
-        for s,n in self.groups.items():
+        for s,n in list(self.groups.items()):
             if (n&groups)!=0: v.append(s)
         return v
 

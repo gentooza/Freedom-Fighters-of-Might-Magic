@@ -62,7 +62,7 @@ def set_data_dir(base):
     global data_dir
     data_dir = os.path.abspath(os.path.normpath(base))
     paths.clear()
-    for name,value in subdirs.items():
+    for name,value in list(subdirs.items()):
         paths[name] = join_path(data_dir,value)
 
 

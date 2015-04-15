@@ -32,15 +32,15 @@ cstack = []
 def push(c, do_enter=True):
     if cstack:
         if __debug__:
-            print("CONTEXT: suspending {0}".format(
-                cstack[-1].__class__.__name__))
+            print(("CONTEXT: suspending {0}".format(
+                cstack[-1].__class__.__name__)))
         cstack[-1].suspend()
     if __debug__:
-        print("CONTEXT: pushing {0}".format(c.__class__.__name__))
+        print(("CONTEXT: pushing {0}".format(c.__class__.__name__)))
     cstack.append(c)
     if do_enter:
         if __debug__:
-            print("CONTEXT: enter {0}".format(c.__class__.__name__))
+            print(("CONTEXT: enter {0}".format(c.__class__.__name__)))
         c.enter()
 
 
@@ -48,15 +48,15 @@ def pop(n = 1):
     for j in range(n):
         if cstack:
             if __debug__:
-                print("CONTEXT: pop/exit {0}".format(
-                    cstack[-1].__class__.__name__))
+                print(("CONTEXT: pop/exit {0}".format(
+                    cstack[-1].__class__.__name__)))
             c = cstack[-1]
             del cstack[-1]
             c.exit()
         if cstack:
             if __debug__:
-                print("CONTEXT: resume {0}".format(
-                    cstack[-1].__class__.__name__))
+                print(("CONTEXT: resume {0}".format(
+                    cstack[-1].__class__.__name__)))
             cstack[-1].resume()
 
 

@@ -81,7 +81,7 @@ class Vec2d(object):
         else:
             return True
  
-    def __nonzero__(self):
+    def __bool__(self):
         # Python 2.7 - see __bool__ for Python 3
         return bool(self.x or self.y)
  
@@ -499,7 +499,7 @@ if __name__ == "__main__":
             self.assertEqual(testvec, loaded_vec)
         
         p = Vec2d(1,2)
-        print(p[:])
+        print((p[:]))
     
     ####################################################################
     unittest.main()

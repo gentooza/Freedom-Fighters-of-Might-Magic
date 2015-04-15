@@ -136,9 +136,9 @@ class Container(widget.Widget):
             try:
                 sub = surface.subsurface(s, w.rect)
             except: 
-                print('container.paint(): %s not inside %s' % (
-                    w.__class__.__name__,self.__class__.__name__))
-                print(s.get_width(), s.get_height(), w.rect)
+                print(('container.paint(): %s not inside %s' % (
+                    w.__class__.__name__,self.__class__.__name__)))
+                print((s.get_width(), s.get_height(), w.rect))
                 print("")
             else:
                 w.paint(sub)
@@ -235,7 +235,7 @@ class Container(widget.Widget):
         if not used and e.type is KEYDOWN:
             if e.key is K_TAB and self.myfocus:
                 if (e.mod&KMOD_SHIFT) == 0:
-                    self.myfocus.next()
+                    next(self.myfocus)
                 else:
                     self.myfocus.previous()
                     return True

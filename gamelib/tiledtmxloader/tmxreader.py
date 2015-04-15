@@ -46,8 +46,8 @@ __author__ = 'DR0ID @ 2009-2011'
 import sys
 from xml.dom import minidom, Node
 try:
-    import StringIO
-    from StringIO import StringIO
+    import io
+    from io import StringIO
 except:
     from io import StringIO
 import os.path
@@ -566,7 +566,7 @@ def printer(obj, ident=''):
     Helper function, prints a hirarchy of objects.
     """
     import inspect
-    print(ident + obj.__class__.__name__.upper())
+    print((ident + obj.__class__.__name__.upper()))
     ident += '    '
     lists = []
     for name in dir(obj):
@@ -576,10 +576,10 @@ def printer(obj, ident=''):
         elif not inspect.ismethod(elem):
             if not name.startswith('__'):
                 if name == 'data' and elem:
-                    print(ident + 'data = ')
+                    print((ident + 'data = '))
                     printer(elem, ident + '    ')
                 else:
-                    print(ident + '%s\t= %s' % (name, getattr(obj, name)))
+                    print((ident + '%s\t= %s' % (name, getattr(obj, name))))
     for objt_list in lists:
         for _obj in objt_list:
             printer(_obj, ident + '    ')

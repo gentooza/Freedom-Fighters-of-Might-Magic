@@ -679,7 +679,7 @@ class PygConductor(object):
 
     def add(self, *animations):
         if type(animations[0]) == dict:
-            for k in animations[0].keys():
+            for k in list(animations[0].keys()):
                 self._animations.append(animations[0][k])
         elif type(animations[0]) in (tuple, list):
             for i in range(len(animations[0])):

@@ -31,7 +31,7 @@ class Style(object):
     """
     def __init__(self, widget, values):
         self.widget = widget
-        for (key, value) in values.items():
+        for (key, value) in list(values.items()):
             setattr(self, key, value)
 
     # Verify that the given style is defined, otherwise raises an StyleError exception. This

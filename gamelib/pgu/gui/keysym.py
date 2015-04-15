@@ -31,7 +31,7 @@ class Keysym(widget.Widget):
                 self.repaint()
                 self.send(CHANGE)
                 used = True
-            self.next()
+            next(self)
         self.pcls = ""
         if self.container.myfocus is self: self.pcls = "focus"
         return used

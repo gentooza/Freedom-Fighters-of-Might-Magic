@@ -49,7 +49,7 @@ class Table(container.Container):
     
     def remove_row(self, n): #NOTE: won't work in all cases.
         if n >= self.getRows():
-            print("Trying to remove a nonexistant row:", n, "there are only", self.getRows(), "rows")
+            print(("Trying to remove a nonexistant row:", n, "there are only", self.getRows(), "rows"))
             return
         
         for cell in self._rows[n]:
@@ -227,7 +227,7 @@ class Table(container.Container):
             for cell in range(self.getColumns()):
                 if self._rows[row][cell] and self._rows[row][cell] is not True:
                     if self._rows[row][cell]["colspan"] > 1:
-                        columns = range(cell, cell + self._rows[row][cell]["colspan"])
+                        columns = list(range(cell, cell + self._rows[row][cell]["colspan"]))
                         totalwidth = 0
                         for acol in columns:
                             totalwidth += columnsizes[acol]
@@ -235,7 +235,7 @@ class Table(container.Container):
                             for acol in columns:
                                 columnsizes[acol] += _table_div(self._rows[row][cell]["widget"].rect.w - totalwidth, self._rows[row][cell]["colspan"],acol)
                     if self._rows[row][cell]["rowspan"] > 1:
-                        rows = range(row, row + self._rows[row][cell]["rowspan"])
+                        rows = list(range(row, row + self._rows[row][cell]["rowspan"]))
                         totalheight = 0
                         for arow in rows:
                             totalheight += rowsizes[arow]

@@ -122,7 +122,7 @@ class Highs:
         """Save the high scores."""
         
         f = open(self.fname,"w")
-        for key,high in self._dict.items():
+        for key,high in list(self._dict.items()):
             for e in high:
                 f.write("%s\t%d\t%s\t%s\n"%(key,e.score,e.name,str(e.data)))
         f.close()

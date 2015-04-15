@@ -30,8 +30,8 @@ class SubPixelSurface(object):
 
         self.level = level
 
-        x_steps = [float(n) / self.level for n in xrange(self.level)]
-        y_steps = [float(n) / self.level for n in xrange(self.level)]
+        x_steps = [float(n) / self.level for n in range(self.level)]
+        y_steps = [float(n) / self.level for n in range(self.level)]
 
         self.surfaces = []
         for frac_y in y_steps:

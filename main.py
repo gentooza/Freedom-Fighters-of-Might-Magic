@@ -25,7 +25,7 @@ try:
 	import getopt
 	import pygame
 	import main_menu
-	import game
+	import game_engine
 	import utils
 #	import objects
 	import paths
@@ -35,58 +35,53 @@ try:
 
 	from socket import *
 	from pygame.locals import *
-except ImportError, err:
-	print "couldn't load module. %s" % (err)
+except ImportError as err:
+	print("couldn't load module. %s" % (err))
 	sys.exit(2)
 
 class app:
 
-	def __init__(self,parameters):
-		pygame.init();
-		if(parameters['resolution'] != 'NULL'):
-			self.resolution = parameters['resolution']
-		else:
-			self.resolution = (320,240)
-			
-		if(parameters['strcaption'] != 'NULL'):
-			self.strCaption = parameters['strcaption']
-		else:
-			self.strCaption = 'Freedom Fighters of Might & Magic'
-
-		self.parameters = parameters
+ def __init__(self,parameters):
+    pygame.init();
+    if(parameters['resolution'] != 'NULL'):
+       self.resolution = parameters['resolution']
+    else:
+       self.resolution = (320,240)
+    if(parameters['strcaption'] != 'NULL'):
+       self.strCaption = parameters['strcaption']
+    else:
+       self.strCaption = 'Freedom Fighters of Might & Magic'
+    self.parameters = parameters
 
 
-	def setDisplay(self):
-		self.screen =  pygame.display.set_mode(self.resolution)
-		self.caption = pygame.display.set_caption(self.strCaption)
-		self.parameters['caption'] = self.caption
+ def setDisplay(self):
+    self.screen =  pygame.display.set_mode(self.resolution)
+    self.caption = pygame.display.set_caption(self.strCaption)
+    self.parameters['caption'] = self.caption
 
-	def run(self):
-		scr_menu = main_menu.main_menu()
-		scr_menu.setScreen(self.screen,30)
-		scr_menu.constructScene()
-		ret = 0
-		while True:
-			if(ret == 0):
-				ret = scr_menu.run()
-				if(ret == 1):
-					print "LET'S PLAY FMM!!"
-					scr_game = game.gameScene(self.parameters)
-					scr_game.setScreen(self.screen)
-					scr_game.constructScene()
-					print 'in game!!'
-					gummworld2.run(scr_game)
-					print 'out of game!!'
-					ret = 0
+ def run(self):
+    scr_menu = main_menu.main_menu()
+    scr_menu.setScreen(self.screen,30)
+    scr_menu.constructScene()
+    ret = 0
+    while True:
+       if(ret == 0):
+          ret = scr_menu.run()
+       if(ret == 1):
+          print("LET'S PLAY FMM!!")
+          #scr_game = game.gameScene(self.parameters)
+          #scr_game.constructScene()
+          scr_game = game_engine.gameEngine()
+          #scr_game.setScreen(self.screen)
+          print('in game!!')
+          gummworld2.run(scr_game)
+          print('out of game!!')
+          ret = 0
 
-				else:
-					print "FORCE EXITING FMM!!"
-					pygame.quit()
-					sys.exit()	
-				if(ret == -1):
-					print "EXITING FMM!!"
-					pygame.quit()
-					sys.exit()		
+       else:
+          print("EXITING FMM!!")
+          pygame.quit()
+          sys.exit()		
 	
 		
 	

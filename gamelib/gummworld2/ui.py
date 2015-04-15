@@ -32,7 +32,7 @@ import pygame
 from pygame.locals import Color, RLEACCEL
 
 if __name__ == '__main__':
-    import paths
+    from . import paths
 from gummworld2 import data, State
 
 
@@ -86,13 +86,13 @@ class HUD(pygame.sprite.OrderedUpdates):
                 sprite = self.stats[sprite]
                 del self.stats[name]
             else:
-                for key, value in self.stats.items():
+                for key, value in list(self.stats.items()):
                     if value is sprite:
                         del self.stats[key]
             super(HUD, self).remove(sprite)
 
     def update(self, dt):
-        for stat in self.stats.values():
+        for stat in list(self.stats.values()):
             stat.update(dt)
 
     def draw(self, dt=0, surface=None):

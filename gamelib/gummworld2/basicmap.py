@@ -84,7 +84,7 @@ class BasicMap(object):
     
     def get_layers(self, which_layers=None):
         if not which_layers:
-            which_layers = range(len(self.layers))
+            which_layers = list(range(len(self.layers)))
         return [L for i, L in enumerate(self.layers) if i in which_layers]
 
     # This is broke, and I haven't gotten any bug reports. Probably no one is using it.
@@ -110,13 +110,13 @@ class BasicMap(object):
         if collapse <= (1, 1):
             return
         if which_layers is None:
-            which_layers = range(len(self.layers))
+            which_layers = list(range(len(self.layers)))
         for layeri in which_layers:
             self.layers[layeri].collapse(collapse)
     
     def merge_layers(self, which_layers=None):
         if which_layers is None:
-            which_layers = range(len(self.layers))
+            which_layers = list(range(len(self.layers)))
         if len(which_layers) < 2:
             return
         dest_layer = self.layers[which_layers[0]]

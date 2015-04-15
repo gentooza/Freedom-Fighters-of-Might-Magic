@@ -129,7 +129,7 @@ class Ellipse(object):
         else:
             circumference = []
             arcs = int(round(arcs))
-            for n in xrange(0, arcs):
+            for n in range(0, arcs):
                 angle = 360.0 * n / arcs
                 x, y = self.point(angle)
                 circumference.append((x, y))

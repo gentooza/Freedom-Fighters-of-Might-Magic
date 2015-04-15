@@ -250,10 +250,10 @@ class TextArea(widget.Widget):
                     elif (e.key == K_TAB):
                         c = "  "
                     else:
-                        if (type(e.unicode) == str):
-                            c = e.unicode
+                        if (type(e.str) == str):
+                            c = e.str
                         else:
-                            c = (e.unicode).encode('latin-1')
+                            c = (e.str).encode('latin-1')
                     if c:
                         used = True
                         self._setvalue(self.value[:self.pos] + c + self.value[self.pos:])

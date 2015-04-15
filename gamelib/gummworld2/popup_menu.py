@@ -600,7 +600,7 @@ if __name__ == '__main__':
     cursor = Cursor()
 
     def handle_menu(e):
-        print('menu event: {0}.{1:d}: {2}'.format(e.name, e.item_id, e.text))
+        print(('menu event: {0}.{1:d}: {2}'.format(e.name, e.item_id, e.text)))
         sys.stdout.flush()
         if e.name == 'Main':
             if e.text == 'Quit':

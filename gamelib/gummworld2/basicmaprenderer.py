@@ -280,8 +280,8 @@ class BasicMapRenderer(object):
         Y = Y // SIZE * SIZE
         TILES = self._tiles
         get_tile = TILES.get
-        for x in xrange(X, X + W + SIZE, SIZE):
-            for y in xrange(Y, Y + H + SIZE, SIZE):
+        for x in range(X, X + W + SIZE, SIZE):
+            for y in range(Y, Y + H + SIZE, SIZE):
                 idx = x, y
                 if idx not in TILES:
                     tile = BasicMapRendererTile(idx, SIZE, self)
@@ -310,7 +310,7 @@ class BasicMapRenderer(object):
         queue = self._examine_queue
         tiles = self._tiles
         if not queue:
-            queue[:] = tiles.values()
+            queue[:] = list(tiles.values())
         stamp = self._view_count
         dead = self._dead
         lifespan = self._lifespan

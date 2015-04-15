@@ -39,8 +39,10 @@ if sys.version_info[0] == 3:
     os.environ['PYTHONUNBUFFERED'] = '1'
 sys.stdout.flush()
 sys.stderr.flush()
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'a', buf_arg)
-sys.stderr = os.fdopen(sys.stderr.fileno(), 'a', buf_arg)
+#edited by gentopoza 2015-04-14
+#'a' parameter to 'w' for python3 compatibility
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buf_arg)
+sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buf_arg)
 
 del os, sys
 
@@ -83,7 +85,7 @@ __all__ = [
 
 from gummworld2 import version
 if __debug__:
-    print('gummworld2 v{0} loading...'.format(version.version))
+    print(('gummworld2 v{0} loading...'.format(version.version)))
 
 # Classes
 from .vec2d import Vec2d
@@ -109,4 +111,4 @@ from .ui import HUD, Stat, Statf
 from .engine import run, Engine, NO_WORLD, SIMPLE_WORLD
 
 if __debug__:
-    print('gummworld2 v{0} loaded'.format(version.version))
+    print(('gummworld2 v{0} loaded'.format(version.version)))

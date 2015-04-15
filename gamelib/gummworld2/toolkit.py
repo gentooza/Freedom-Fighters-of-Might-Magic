@@ -39,7 +39,7 @@ __all__ = [
 import os
 import re
 import sys
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 if sys.version_info[0] == 3:
     # This is dirty but range can be expensive with large sequences in
@@ -50,8 +50,8 @@ if sys.version_info[0] == 3:
     url_unquote = parse.unquote
     del parse
 else:
-    url_quote = urllib.quote
-    url_unquote = urllib.unquote
+    url_quote = urllib.parse.quote
+    url_unquote = urllib.parse.unquote
 
 import pygame
 from pygame.locals import Color
@@ -242,7 +242,7 @@ def export_world(fh, entities):
     """
     
     if not isinstance(entities, (list, tuple)) and not hasattr(entities, '__iter__'):
-        raise(pygame.error, 'entities must be iterable')
+        raise pygame.error
     
     def quote(unquoted_data):
         translated_data = []
@@ -336,13 +336,13 @@ def import_world(
     """
     
     if not issubclass(rect_cls, RectGeometry):
-        raise(pygame.error, 'argument "rect_cls" must be a subclass of geometry.RectGeometry')
+        raise pygame.error
     if not issubclass(line_cls, LineGeometry):
-        raise(pygame.error, 'argument "line_cls" must be a subclass of geometry.LineGeometry')
+        raise pygame.error
     if not issubclass(poly_cls, PolyGeometry):
-        raise(pygame.error, 'argument "poly_cls" must be a subclass of geometry.PolyGeometry')
+        raise pygame.error
     if not issubclass(circle_cls, CircleGeometry):
-        raise(pygame.error, 'argument "circle_cls" must be a subclass of geometry.CircleGeometry')
+        raise pygame.error
     
     entities = []
     tilesheets = {}
@@ -414,7 +414,7 @@ def import_world(
             entity = poly_cls(points, center)
             entities.append(entity)
         else:
-            raise(pygame.error, 'line {}: keyword "{}" unexpected'.format(line_num, what))
+            raise pygame.error
         
     return entities, tilesheets
     
@@ -801,7 +801,7 @@ def draw_tiles_of_layer(layeri, pallax_factor_x=1.0, pallax_factor_y=1.0):
                     blit(s.image, (rect.x - (cx * pallax_factor_x), rect.y - (cy * pallax_factor_y)))
     else:
         if __debug__ and hasattr(State, 'silence_draw_tiles'):
-            print("ERROR: layer {0} not defined int map!".format(layeri))
+            print(("ERROR: layer {0} not defined int map!".format(layeri)))
 
 
 def draw_labels(cache_dict, layeri=0, color=pygame.Color('black')):
@@ -820,8 +820,8 @@ def draw_labels(cache_dict, layeri=0, color=pygame.Color('black')):
     x1 = tw - (left - left // tw * tw)
     y1 = th - (top - top // th * th)
     #
-    for x in xrange(left - tw, left + width + tw, tw):
-        for y in xrange(top - th, top + height + th, th):
+    for x in range(left - tw, left + width + tw, tw):
+        for y in range(top - th, top + height + th, th):
             name = (x - tw) // tw + 1, (y - th) // th + 1
             sx, sy = x - left - tw, y - top - th
             label = cache_dict.get(name, None)
@@ -870,10 +870,10 @@ def draw_grid(grid_cache, layeri=0, color=pygame.Color('blue'), alpha=33):
     #
     layer = State.map.layers[layeri]
     x1 = layer.tile_width - (left - left // layer.tile_width * layer.tile_width)
-    for x in xrange(x1, width, layer.tile_width):
+    for x in range(x1, width, layer.tile_width):
         blit(vline, (x, 0))
     y1 = layer.tile_height - (top - top // layer.tile_height * layer.tile_height)
-    for y in xrange(y1, height, layer.tile_height):
+    for y in range(y1, height, layer.tile_height):
         blit(hline, (0, y))
 
 # draw_grid

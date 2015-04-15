@@ -82,7 +82,7 @@ class Color(widget.Widget):
 
     @value.setter
     def value(self, val):
-        if (isinstance(val, basestring)):
+        if (isinstance(val, str)):
             # Parse the string as a color
             val = parse_color(val)
         oldval = self._value
@@ -144,7 +144,7 @@ class Image(widget.Widget):
         if (not value):
             raise PguError("Image widget takes a path or pygame surface as first argument")
 
-        if (isinstance(value, basestring)):
+        if (isinstance(value, str)):
             # Assume the argument is a path
             value = pygame.image.load(value)
             if (not value):

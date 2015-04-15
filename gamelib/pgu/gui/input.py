@@ -89,10 +89,10 @@ class Input(widget.Widget):
                 pass
             else:
                 #c = str(e.unicode)
-                if (type(e.unicode) == str):
-                    c = e.unicode
+                if (type(e.str) == str):
+                    c = e.str
                 else:
-                    c = (e.unicode).encode('latin-1')
+                    c = (e.str).encode('latin-1')
 
                 try:
                     if c:

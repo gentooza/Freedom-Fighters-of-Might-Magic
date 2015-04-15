@@ -191,8 +191,8 @@ def _load_tiled_tmx_map(tmx_map, gummworld_map, load_invisible=True):
                 sprite.properties = obj.properties
                 gummworld_layer.add(sprite)
         else:
-            for ypos in xrange(0, layer.height):
-                for xpos in xrange(0, layer.width):
+            for ypos in range(0, layer.height):
+                for xpos in range(0, layer.width):
                     x = (xpos + layer.x) * layer.tilewidth
                     y = (ypos + layer.y) * layer.tileheight
                     img_idx = layer.content2D[xpos][ypos]
@@ -202,7 +202,7 @@ def _load_tiled_tmx_map(tmx_map, gummworld_map, load_invisible=True):
                         offx,offy,tile_img = resource.indexed_tiles[img_idx]
                         screen_img = tile_img
                     except KeyError:
-                        print('KeyError: {0} {1}'.format(img_idx,(xpos,ypos)))
+                        print(('KeyError: {0} {1}'.format(img_idx,(xpos,ypos))))
                         continue
                     sprite = Sprite()
                     ## Note: alpha conversion can actually kill performance.

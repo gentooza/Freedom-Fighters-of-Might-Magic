@@ -197,7 +197,7 @@ class Widget(object):
         """Request a reupdate of this Widget."""
         if self.container: self.container.reupdate(self)
 
-    def next(self): 
+    def __next__(self): 
         """Pass focus to next Widget.
         
         Widget order determined by the order they were added to their container.
@@ -298,7 +298,7 @@ class Widget(object):
                 code = func.__code__
             except:
                 try:
-                    code = func.func_code
+                    code = func.__code__
                 except:
                     # Nothing to inspect, so just call the object and hope for the best
                     func(*cb.params)
@@ -316,7 +316,7 @@ class Widget(object):
             args = []
             magic = {'_event':event,'_code':code,'_widget':self}
             for name in names:
-                if name in magic.keys():
+                if name in list(magic.keys()):
                     args.append(magic[name])
                 elif len(values):
                     args.append(values.pop(0))

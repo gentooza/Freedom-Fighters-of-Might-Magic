@@ -68,7 +68,7 @@ class Object(object):
         pass
     
     def worlds(self):
-        return self._worlds.keys()
+        return list(self._worlds.keys())
     
     def kill(self):
         for w in self._worlds:
@@ -107,7 +107,7 @@ class World(object):
                 del o._worlds[self]
     
     def objects(self):
-        return self._object_dict.keys()
+        return list(self._object_dict.keys())
     
     def step(self, dt):
         for o in self.objects():
@@ -119,7 +119,7 @@ class World(object):
     def __contains__(self, obj):
         return obj in self._object_dict
     
-    def __nonzero__(self):
+    def __bool__(self):
         return len(self._object_dict) != 0
     
     def __len__(self):
