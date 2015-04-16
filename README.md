@@ -12,7 +12,7 @@ everybody is invited to participate and learn!
 
 ##Dependencies
 
-I'm using for now python 2.7 and pygame 1.91 (migrating to python3 would be necessary)
+I'm using python 3.4 and pygame 1.92 (python 3.4 is the default in my Trisquel 7 GNU/Linux)
 
 I've based the work in the libraries:
 
@@ -22,7 +22,7 @@ I've based the work in the libraries:
 
 ##Execute
 
->python2 main.py
+>python3 main.py
 
 
 ##images license
