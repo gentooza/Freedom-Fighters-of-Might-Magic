@@ -27,7 +27,7 @@ __author__ = 'Gummbum, (c) 2011-2014'
 
 import pygame
 from pygame.sprite import Sprite
-from pygame.locals import FULLSCREEN, Color, K_ESCAPE, K_TAB
+from pygame.locals import *
 
 import paths
 import gummworld2
@@ -35,16 +35,6 @@ from gummworld2 import *
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
-
-
-class Avatar(geometry.CircleGeometry):
-    
-    def __init__(self, map_pos, screen_pos):
-        geometry.CircleGeometry.__init__(self, map_pos, 5)
-        self.image = pygame.surface.Surface((10, 10))
-        pygame.draw.circle(self.image, Color('yellow'), (5, 5), 4)
-        self.image.set_colorkey(Color('black'))
-        self.screen_position = screen_pos - 5
 
 
 class gameEngine(Engine):
@@ -87,6 +77,9 @@ class gameEngine(Engine):
         State.show_world = False
         State.speed = 5
 
+        self.move_x = 0
+        self.move_y = 0
+
         # Use the renderer.
         self.renderer = BasicMapRenderer(self.map, max_scroll_speed=State.speed)
         
@@ -102,6 +95,8 @@ class gameEngine(Engine):
         # If mouse button is held down update for continuous walking.
         if self.mouse_down:
             self.update_mouse_movement(pygame.mouse.get_pos())
+        #if self.key_down:
+        #     self.update_keyboard_movement()
         self.update_camera_position()
         self.renderer.set_rect(center=State.camera.rect.center)
         State.camera.update()
@@ -135,7 +130,7 @@ class gameEngine(Engine):
             self.avatar.move(direction)
             # Speed formula.
             speed = self.speed * State.speed
-
+            print(speed)
             # newx,newy is the new vector, which will be adjusted to avoid
             # collisions...
 
@@ -148,7 +143,27 @@ class gameEngine(Engine):
                 # Otherwise, calculate the full step.
                 angle = geometry.angle_of((wx, wy), self.move_to)
                 newx, newy = geometry.point_on_circumference((wx, wy), speed, angle)
-            
+        if(self.move_x != 0 or self.move_y !=0):
+            # Current position.
+            camera = State.camera
+            wx, wy = camera.position
+            #set dir to avatar
+            direction = Vec2d(self.move_x,self.move_y)
+            print("DIRECCION!:",direction)
+            self.avatar.move(direction)
+
+            # Speed formula. 
+            #gentooza, set to 3 to test
+            speed = 3
+            # newx,newy is the new vector, which will be adjusted to avoid
+            # collisions...
+            # GENTOOZA
+            #"*5" is the step length
+            # we need to know the tile size to move one tile here!
+            #this is only a test
+            newx, newy = wx + self.move_x*3,wy+ self.move_y*3
+
+        if self.move_to is not None or self.move_x != 0 or self.move_y != 0:   
             # Check world collisions.
 
             world = State.world
@@ -168,6 +183,7 @@ class gameEngine(Engine):
             if not move_ok:
                 newx = wx + pygame_utils.sign(newx - wx) * speed
                 newy = wy + pygame_utils.sign(newy - wy) * speed
+                
                 for side_step in ((newx, wy),(wx, newy)):
                     move_ok = can_step(side_step)
                     if move_ok:
@@ -181,6 +197,7 @@ class gameEngine(Engine):
                         for step in self.side_steps[:1]:
                             if step != newstep:
                                 self.move_to = None
+                                self.move_x = self.move_y = 0
                                 break
                         break
             else:
@@ -190,6 +207,7 @@ class gameEngine(Engine):
             if not move_ok:
                 # Reset camera position.
                 self.move_to = None
+                self.move_x = self.move_y = 0
             else:
                 # Keep avatar inside map bounds.
                 rect = State.world.rect
@@ -255,12 +273,29 @@ class gameEngine(Engine):
     def on_mouse_button_up(self, pos, button):
         self.mouse_down = False
         
-    def on_key_down(self, key, mod):
+    def on_key_down(self, unicode, key, mod):
         # Turn on key-presses.
+        if key == K_DOWN:
+            self.move_y = 1    
+        if key == K_UP:
+            self.move_y = -1 
+        if key == K_RIGHT:
+            self.move_x = 1
+        if key == K_LEFT:
+            self.move_x = -1 
         if key == K_TAB:
             State.show_world = not State.show_world
-        elif key == K_ESCAPE:
+        if key == K_ESCAPE:
             context.pop()
+
+        
+    def on_key_up(self, key, mod):
+        # Turn off key-presses.
+        if key in (K_DOWN, K_UP):
+            self.move_y = 0
+        elif key in (K_RIGHT, K_LEFT):
+            self.move_x = 0
+
         
     def on_quit(self):
         context.pop()

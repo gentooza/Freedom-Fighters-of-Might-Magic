@@ -59,7 +59,7 @@ class ourHero(object):
    front_image = path + '/' + image + '-se-bob1.png'
    self.front_standing = utils.load_png(front_image)
    self.right_standing = utils.load_png(front_image)
-   self.rect = self.front_standing.get_rect()
+   #self.rect = self.front_standing.get_rect()
 
    self.back_standing = pygame.transform.flip(self.front_standing, True, False) 
    self.left_standing = pygame.transform.flip(self.right_standing, True, False) 
@@ -81,6 +81,7 @@ class ourHero(object):
    self.animObjs['-sw-run'].makeTransformsPermanent()
 
    self.image = self.animObjs['-se-run'].getCurrentFrame()
+   self.rect = self.image.get_rect()
 
    #move conductor
    self.moveConductor = pyganim.PygConductor(self.animObjs)

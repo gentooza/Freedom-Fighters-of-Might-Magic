@@ -350,7 +350,7 @@ class Engine(Context):
             if typ == KEYDOWN:
                 #removed e.str python3 doesn't like it
 		#by gentooza 2015-04-14
-                self.on_key_down(e.key, e.mod)
+                self.on_key_down(e.unicode,e.key, e.mod)
             elif typ == KEYUP:
                 self.on_key_up(e.key, e.mod)
             elif typ == MOUSEMOTION:
