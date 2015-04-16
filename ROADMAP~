@@ -1,11 +1,10 @@
-V0.0.3 current
----------------------
 
 
-V0.0.2 2015/04/16
+
+V0.0.2 current
 ---------------------
-+ python3 migration
-+ our creature as hero class, not as thing in things (of the engine)
+- python3 migration
+- our creature as hero class, not as thing in things (of the engine)
 V0.0.1 2015/04/13
 ---------------------
 + insert gunmworld2 in project
