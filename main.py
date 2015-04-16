@@ -71,7 +71,7 @@ class app:
           print("LET'S PLAY FMM!!")
           #scr_game = game.gameScene(self.parameters)
           #scr_game.constructScene()
-          scr_game = game_engine.gameEngine()
+          scr_game = game_engine.gameEngine(self.resolution,self.strCaption)
           #scr_game.setScreen(self.screen)
           print('in game!!')
           gummworld2.run(scr_game)
@@ -90,7 +90,7 @@ class app:
 
 #INTILIALIZATION
 resolution = (800,600)
-strCaption = 'FFMM v0.0.1 ALPHA'
+strCaption = 'FFMM v0.0.2 ALPHA'
 tile_size=(30, 30) 
 map_size=(100, 100)
 minimap_pos = (600,100)

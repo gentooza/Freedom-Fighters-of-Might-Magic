@@ -39,18 +39,12 @@ import objects
 
 class gameEngine(Engine):
     
-    def __init__(self, resolution=(800, 600)):
-        print(resolution)
-        print(type(resolution))
+    def __init__(self, resolution=(800, 600),strcaption = "no caption"):
+
         resolution = Vec2d(resolution)
-        print(resolution)
-        print(type(resolution))
-        new_resolution = resolution //2
-        print(new_resolution)
-        print(type(new_resolution))       
         self.avatar = objects.ourHero("horseman","horseman",(500, 770), resolution // 2)
         
-        Engine.__init__(self, caption='test python3',
+        Engine.__init__(self, caption=strcaption,
                         camera_target= self.avatar,resolution=resolution, frame_speed=0)
         
         self.map = TiledMap(data.filepath('map', 'mini2.tmx'))
@@ -118,15 +112,15 @@ class gameEngine(Engine):
     def update_camera_position(self):
         """Step the camera's position if self.move_to contains a value.
         """
-        print("mover a",self.move_to)
+        #print("mover a",self.move_to)
         if self.move_to is not None:
             # Current position.
             camera = State.camera
             wx, wy = camera.position
-            print("coordenadas",wx,wy)
+            #print("coordenadas",wx,wy)
             #set dir to avatar
             direction = Vec2d(self.move_to[0]-wx,self.move_to[1]-wy)
-            print("DIRECCION!:",direction)
+            #print("DIRECCION!:",direction)
             self.avatar.move(direction)
             # Speed formula.
             speed = self.speed * State.speed
@@ -149,7 +143,7 @@ class gameEngine(Engine):
             wx, wy = camera.position
             #set dir to avatar
             direction = Vec2d(self.move_x,self.move_y)
-            print("DIRECCION!:",direction)
+            #print("DIRECCION!:",direction)
             self.avatar.move(direction)
 
             # Speed formula. 
@@ -171,6 +165,8 @@ class gameEngine(Engine):
             dummy = self.faux_avatar
             dummy.position = camera_target.position
 
+            #gentooza
+            #true collisions should be edited here, in can_step, taking care of the sprite rect
             def can_step(step):
                 dummy.position = step
                 return not world.collideany(dummy)
@@ -211,14 +207,16 @@ class gameEngine(Engine):
             else:
                 # Keep avatar inside map bounds.
                 rect = State.world.rect
-                if newx < rect.left:
-                    newx = rect.left
-                elif newx > rect.right:
-                    newx = rect.right
-                if newy < rect.top:
-                    newy = rect.top
-                elif newy > rect.bottom:
-                    newy = rect.bottom
+                avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
+                print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
+                if newx + avatar_topright[0]  < rect.left:
+                    newx = rect.left - avatar_topright[0]
+                elif newx + avatar_topleft[0] > rect.right:
+                    newx = rect.right -avatar_topleft[0]
+                if newy +avatar_topright[1] < rect.top:
+                    newy = rect.top - avatar_topright[1]
+                elif newy + avatar_bottomleft[1] > rect.bottom:
+                    newy = rect.bottom - avatar_bottomleft[1]
                 camera.position = newx, newy
         else:
             self.avatar.stopMove(Vec2d(0,0))
