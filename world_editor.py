@@ -928,7 +928,8 @@ class MapEditor(object):
         self.mouseover_shapes = []
         
         # Keyboard details.
-        pygame.key.set_repeat(150, 1000/30)
+        #edited gentooza, round
+        pygame.key.set_repeat(150, round(1000/30))
         self.paste = None
         
         # Some things to aid debugging.
@@ -2005,7 +2006,9 @@ class MapEditor(object):
         for e in events:
             typ = e.type
             if typ == KEYDOWN:
-                self.on_key_down(e, e.str, e.key, e.mod)
+                #e.str no, unicode!!
+                #gentooza
+                self.on_key_down(e, e.unicode, e.key, e.mod)
             elif typ == KEYUP:
                 self.on_key_up(e, e.key, e.mod)
             elif typ == MOUSEMOTION:

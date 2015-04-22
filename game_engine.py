@@ -1,28 +1,23 @@
 #!/usr/bin/env python
 
-# This file is part of Gummworld2.
 #
-# Gummworld2 is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+#  Freedom Fighters of Might & Magic
 #
-# Gummworld2 is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#  Copyright 2014-2015 by it's authors. 
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with Gummworld2.  If not, see <http://www.gnu.org/licenses/>.
+#  Some rights reserved. See COPYING, AUTHORS.
+#  This file may be used under the terms of the GNU General Public
+#  License version 3.0 as published by the Free Software Foundation
+#  and appearing in the file COPYING included in the packaging of
+#  this file.
+#
+#  This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+#  WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
-# Compatible: Python 2.7, Python 3.2
+"""game_engine.py is the gummworld derived engine class for the ffmm
 
-"""17_load_and_use_world.py - A demo combining a Tiled Map Editor
-map and Gummworld2 Editor entities.
 """
 
-__version__ = '$Id: 17_load_and_use_world.py 422 2013-08-21 04:30:47Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
 
 
 import pygame
@@ -35,25 +30,32 @@ from gummworld2 import *
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
+import ffmm_spatialhash
 
 
 class gameEngine(Engine):
     
     def __init__(self, resolution=(800, 600),strcaption = "no caption"):
-
+        #setting resolution
         resolution = Vec2d(resolution)
+        #creating instance of our avatar in screen
         self.avatar = objects.ourHero("horseman","horseman",(500, 770), resolution // 2)
-        
+        #engine initialization
+        #   camera target: our avatar
         Engine.__init__(self, caption=strcaption,
                         camera_target= self.avatar,resolution=resolution, frame_speed=0)
-        
-        self.map = TiledMap(data.filepath('map', 'mini2.tmx'))
-        self.world = SpatialHash(self.map.rect, 32)
+        #self.map is our map created with tile editor
+        self.map = TiledMap(data.filepath('map', 'test.tmx'))
+        #create world with map size and the cell size
+        self.cell_size = 50
+        self.world = ffmm_spatialhash.game_SpatialHash(self.map.rect, self.cell_size)
+        #  no idea
         self.set_state()
-        
-        entities, tilesheets = toolkit.load_entities(data.filepath('map', 'mini2.entities'))
-        for e in entities:
-            State.world.add(e)
+        #load entities from map, I think here we see collision rects, i.e.
+        #removed temporally
+        #entities, tilesheets = toolkit.load_entities(data.filepath('map', 'mini2.entities'))
+        #for e in entities:
+        #    State.world.add(e)
         
         # Create a speed box for converting mouse position to destination
         # and scroll speed. 800x600 has aspect ratio 8:6.
@@ -67,12 +69,17 @@ class gameEngine(Engine):
         self.mouse_down = False
         self.side_steps = []
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
+
+        #keyboard managment
+        self.key_down = False
+        self.move_x = 0
+        self.move_y = 0
+        self.new_x = 0
+        self.new_y = 0
         
         State.show_world = False
         State.speed = 5
 
-        self.move_x = 0
-        self.move_y = 0
 
         # Use the renderer.
         self.renderer = BasicMapRenderer(self.map, max_scroll_speed=State.speed)
@@ -87,15 +94,16 @@ class gameEngine(Engine):
     def update(self, dt):
         """overrides Engine.update"""
         # If mouse button is held down update for continuous walking.
-        if self.mouse_down:
-            self.update_mouse_movement(pygame.mouse.get_pos())
-        #if self.key_down:
-        #     self.update_keyboard_movement()
+        #if self.mouse_down:
+        #    self.update_mouse_movement(pygame.mouse.get_pos())
+        if self.key_down:
+            self.update_keyboard_movement()     
         self.update_camera_position()
         self.renderer.set_rect(center=State.camera.rect.center)
         State.camera.update()
         self.avatar.update(State.screen)
-        
+  
+
     def update_mouse_movement(self, pos):
         # Final destination.
         self.move_to = None
@@ -108,6 +116,30 @@ class gameEngine(Engine):
                 self.speed = geometry.distance(
                     self.speed_box.center, (x, y)) / self.max_speed_box
                 break
+    #keyboard movement between cells
+    def update_keyboard_movement(self):
+        # Current position.
+        camera = State.camera
+        wx, wy = camera.position
+        cell_id = self.world.index_at(wx,wy)
+        row,col = self.world.get_cell_grid(cell_id)
+        print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
+        #new situation of new cell
+        new_row = row + self.move_y
+        new_col = col + self.move_x
+        #does it exist?
+        cell = self.world.get_cell_by_grid(new_col,new_row)
+        if(cell == None):
+           #doesnt exist
+           return
+        else:
+           cell_id = self.world.index(cell)
+           self.new_x,self.new_y = self.world.get_cell_pos(cell_id)
+           row,col = self.world.get_cell_grid(cell_id)
+           self.new_x += self.cell_size/2
+           self.new_y += self.cell_size/2
+           print("a la position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+ 
         
     def update_camera_position(self):
         """Step the camera's position if self.move_to contains a value.
@@ -124,7 +156,6 @@ class gameEngine(Engine):
             self.avatar.move(direction)
             # Speed formula.
             speed = self.speed * State.speed
-            print(speed)
             # newx,newy is the new vector, which will be adjusted to avoid
             # collisions...
 
@@ -137,6 +168,7 @@ class gameEngine(Engine):
                 # Otherwise, calculate the full step.
                 angle = geometry.angle_of((wx, wy), self.move_to)
                 newx, newy = geometry.point_on_circumference((wx, wy), speed, angle)
+        #by keyboard
         if(self.move_x != 0 or self.move_y !=0):
             # Current position.
             camera = State.camera
@@ -148,14 +180,14 @@ class gameEngine(Engine):
 
             # Speed formula. 
             #gentooza, set to 3 to test
-            speed = 3
+            #speed = 3
             # newx,newy is the new vector, which will be adjusted to avoid
             # collisions...
             # GENTOOZA
             #"*5" is the step length
             # we need to know the tile size to move one tile here!
             #this is only a test
-            newx, newy = wx + self.move_x*3,wy+ self.move_y*3
+            newx, newy = self.new_x,self.new_y
 
         if self.move_to is not None or self.move_x != 0 or self.move_y != 0:   
             # Check world collisions.
@@ -164,16 +196,18 @@ class gameEngine(Engine):
             camera_target = camera.target
             dummy = self.faux_avatar
             dummy.position = camera_target.position
-
+            dummy.rect = dummy.getRect()
             #gentooza
             #true collisions should be edited here, in can_step, taking care of the sprite rect
             def can_step(step):
                 dummy.position = step
+                #print("AVATAR POSITION!!",step)
+                #print("AVATAR POSITION 2!!",dummy.getposition())
                 return not world.collideany(dummy)
 
             # Remove camera target so it's not a factor in collisions.
             world.remove(camera_target)
-            move_ok = can_step((newx, newy))
+            move_ok = can_step((newx, newy)) #we can trick can_step to aproach, or get far away a sprite from bounds,gentooza
 
             # We hit something. Try side-stepping.
             if not move_ok:
@@ -193,7 +227,7 @@ class gameEngine(Engine):
                         for step in self.side_steps[:1]:
                             if step != newstep:
                                 self.move_to = None
-                                self.move_x = self.move_y = 0
+                                self.move_x = self.move_y = self.new_x = self.new_y = 0
                                 break
                         break
             else:
@@ -203,20 +237,20 @@ class gameEngine(Engine):
             if not move_ok:
                 # Reset camera position.
                 self.move_to = None
-                self.move_x = self.move_y = 0
+                self.move_x = self.move_y = self.new_x = self.new_y =  0
             else:
                 # Keep avatar inside map bounds.
                 rect = State.world.rect
-                avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
-                print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
-                if newx + avatar_topright[0]  < rect.left:
-                    newx = rect.left - avatar_topright[0]
-                elif newx + avatar_topleft[0] > rect.right:
-                    newx = rect.right -avatar_topleft[0]
-                if newy +avatar_topright[1] < rect.top:
-                    newy = rect.top - avatar_topright[1]
-                elif newy + avatar_bottomleft[1] > rect.bottom:
-                    newy = rect.bottom - avatar_bottomleft[1]
+                #avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
+                #print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
+                if newx < rect.left:
+                    newx = rect.left 
+                elif newx  > rect.right:
+                    newx = rect.right
+                if newy  < rect.top:
+                    newy = rect.top 
+                elif newy  > rect.bottom:
+                    newy = rect.bottom 
                 camera.position = newx, newy
         else:
             self.avatar.stopMove(Vec2d(0,0))
@@ -264,6 +298,7 @@ class gameEngine(Engine):
         camera = State.camera
         avatar = camera.target
         camera.surface.blit(avatar.image, avatar.screen_position)
+        #self.avatar.draw(self.screen)
         
     def on_mouse_button_down(self, pos, button):
         self.mouse_down = True
@@ -274,12 +309,16 @@ class gameEngine(Engine):
     def on_key_down(self, unicode, key, mod):
         # Turn on key-presses.
         if key == K_DOWN:
+            self.key_down = True
             self.move_y = 1    
         if key == K_UP:
+            self.key_down = True
             self.move_y = -1 
         if key == K_RIGHT:
+            self.key_down = True
             self.move_x = 1
         if key == K_LEFT:
+            self.key_down = True
             self.move_x = -1 
         if key == K_TAB:
             State.show_world = not State.show_world
@@ -290,8 +329,10 @@ class gameEngine(Engine):
     def on_key_up(self, key, mod):
         # Turn off key-presses.
         if key in (K_DOWN, K_UP):
+            self.key_down = False
             self.move_y = 0
         elif key in (K_RIGHT, K_LEFT):
+            self.key_down = False
             self.move_x = 0
 
         

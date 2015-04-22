@@ -82,6 +82,7 @@ class ourHero(object):
 
    self.image = self.animObjs['-se-run'].getCurrentFrame()
    self.rect = self.image.get_rect()
+   self.image_stand = None
 
    #move conductor
    self.moveConductor = pyganim.PygConductor(self.animObjs)
@@ -89,13 +90,8 @@ class ourHero(object):
    #self.direction = DOWN
    self.x = screen_pos[0]
    self.y = screen_pos[1]
-   if(screen_pos[0] > 5 & screen_pos[1] > 5):
-      self.screen_position = screen_pos - 5
-   else:
-      self.screen_position = screen_pos
+   self.screen_position = screen_pos
    self.position = map_pos
-## entity's collided, static method used by QuadTree callback
- collided = staticmethod(gummworld2.geometry.rect_collided_other)
 
  def getpoints(self):
     r = self.rect
@@ -114,26 +110,7 @@ class ourHero(object):
     p.x, p.y = val
     self.rect.center = round(p.x), round(p.y)
  position = property(getposition, setposition)
- #@property
- #def position(self):
- #   return self._position.x,self._position.y
 
- #def getxyposition(self):
-   #return self.x,self.y
-
- #@position.setter
- #def position(self, val):
- #  p = self._position
- #  p.x, p.y = val
- #  self.x,self.y = val
- #  self.rect.center = round(p.x), round(p.y)
-
- #def setxyposition(self,val):
-   #self.x,self.y = val
-
- #def moveLimits(self,width,height):
-   #self.limitRight = width
-   #self.limitDown = height
 
  def move(self,direction):
    self.dir = direction
@@ -154,7 +131,8 @@ class ourHero(object):
       #self.x = self.x + WALKRATE
       #self._position = Vec2d(self.x,self.y)
       #self.dir = Vec2d(5.0, 0.0)		 
- 
+ def getRect(self):
+   return self.rect
 
  def stopMove(self,direction):
    self.dir = direction
@@ -164,61 +142,27 @@ class ourHero(object):
    self.x = self.position[0]
    self.y = self.position[1]
    if self.movement:
-      #newx,newy = self.position + self.dir
-      #world_rect = State.world.rect
-      # draw the correct walking/running sprite from the animation object
       self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
-      # walking
-      #if newy < 28:
-         #self.position = (self.position[0],28)
-      #if newy >= world_rect.bottom:
-         #self.position = (self.position[0],world_rect.bottom)
-      #if newx < 64:
-         #self.position = (64,self.position[1])
-      #if newx >= world_rect.right:
-         #self.position = (world_rect.right,self.position[1])
       if self.dir.x > 0:
          self.animObjs['-n-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-se-run'].getCurrentFrame()
+         self.image_stand = self.right_standing
       elif self.dir.x <= 0:
          self.animObjs['-s-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-sw-run'].getCurrentFrame()
-      #elif self.direction == LEFT:
-         #self.dir.x = -4
-	 #self.x = self.x - WALKRATE
-	 #self._position = Vec2d(self.x,self.y)
-         #self.animObjs['-sw-run'].blit(screen, (self.x, self.y))
-         #self.image = self.animObjs['-sw-run'].getCurrentFrame()
-      #elif self.direction == RIGHT:
-         #self.dir.x = 4
-	 #self.x = self.x + WALKRATE
-	 #self._position = Vec2d(self.x,self.y)
-         #self.animObjs['-se-run'].blit(screen, (self.x, self.y))
-         #self.image = self.animObjs['-se-run'].getCurrentFrame()
+         self.image_stand = self.left_standing
+  
+   else:
+      self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
+      if(self.image_stand == None):
+         self.image = self.right_standing
+         screen.blit(self.image, (self.x, self.y))
       else:
-         # standing still
-         self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
-         #self.dir.x = self.dir.y = 0
-         #if self.direction == UP:
-         screen.blit(self.back_standing, (self.x, self.y))
-         self.image = self.back_standing
-         #elif self.direction == DOWN:
-          #  screen.blit(self.front_standing, (self.x, self.y))
-           # self.image = self.front_standing
-         #elif self.direction == LEFT:
-         #   screen.blit(self.left_standing, (self.x, self.y))
-         #   self.image = self.left_standing
-         #elif self.direction == RIGHT:
-         #   screen.blit(self.right_standing, (self.x, self.y))
-         #   self.image = self.right_standing
-         #else:
-         #   screen.blit(self.front_standing, (self.x, self.y))
-         #   self.image = self.front_standing
+         self.image = self.image_stand
+         screen.blit(self.image, (self.x, self.y))
 
-
-
-         #self.position +=  self.dir
-         #print(self.position)
+   self.rect = self.image.get_rect()
+   self.rect.center=self.x, self.y
 
 
 	
