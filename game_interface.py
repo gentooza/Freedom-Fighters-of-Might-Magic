@@ -28,7 +28,7 @@ from pygame.locals import *
 
 import paths
 import gummworld2
-from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf
+from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf, View
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
@@ -37,20 +37,25 @@ import utils
 
 class gameInterface(object):
     
-   def __init__(self, resolution=(1014, 965)):
-      
+   def __init__(self, screen):
+
+      #loading images
       self.menubar =  utils.load_png("gui/menubar.png")
       self.minimap = utils.load_png("gui/minimap.png")
       self.sidebar = utils.load_png("gui/sidebar.png")
  
-      #position
+      #position, not positioned yet
       self.menubar_rect = self.menubar.get_rect()
       self.minimap_rect = self.minimap.get_rect()
       self.sidebar_rect = self.sidebar.get_rect()
-
+      #setting rectangles
       self.menubar_rect = pygame.Rect(0, 0, 833, 27)
       self.minimap_rect = pygame.Rect(833, 0, 181, 265)
       self.sidebar_rect = pygame.Rect(833, 265, 181, 700)
+      #creating mini screens from state screen, method obtained from example 10_minimap.py of gummlib2
+      self.menubar_screen = View(screen.surface, self.menubar_rect)
+      self.minimap_screen = View(screen.surface, self.menubar_rect)
+      self.sidebar_screen = View(screen.surface, self.menubar_rect)
 
     #def update(self, dt):
 
@@ -62,9 +67,19 @@ class gameInterface(object):
       
 
    def draw(self,screen):
-       pygame.draw.rect(self.menubar,(99, 99, 99), self.menubar_rect, 1)
-       pygame.draw.rect(self.minimap,(99, 99, 99), self.minimap_rect, 1)
-       pygame.draw.rect(self.sidebar,(99, 99, 99), self.sidebar_rect, 1)
-       screen.blit(self.menubar,(0,0))
-       screen.blit(self.minimap,(833,0))
-       screen.blit(self.sidebar,(833,265))
+       #clearing
+       self.menubar_screen.clear()
+       self.minimap_screen.clear()
+       self.sidebar_screen.clear()
+       #drawing
+       pygame.draw.rect(screen.surface,(99, 99, 99), self.menubar_rect, 1)
+       pygame.draw.rect(screen.surface,(99, 99, 99), self.minimap_rect, 1)
+       pygame.draw.rect(screen.surface,(99, 99, 99), self.sidebar_rect, 1)
+       #blitting panels
+       self.menubar_screen.surface.blit(self.menubar,(0,0))
+       self.minimap_screen.surface.blit(self.minimap,(833,0))
+       self.sidebar_screen.surface.blit(self.sidebar,(833,265))
+       #screen.blit(self.menubar,(0,0))
+       #screen.blit(self.minimap,(833,0))
+       #screen.blit(self.sidebar,(833,265))
+       print("drawing panels!")

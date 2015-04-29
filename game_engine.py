@@ -132,7 +132,7 @@ class gameEngine(Engine):
         State.clock.schedule_interval(State.hud.update, 1.0)
      
         #game interface!
-        self.interface = game_interface.gameInterface()
+        self.interface = game_interface.gameInterface(State.screen)
     
     #def setScreen(self, screen):
     #    self.screen = screen
@@ -376,8 +376,9 @@ class gameEngine(Engine):
            self.draw_debug()
         self.draw_steps()
         State.hud.draw()
-        State.screen.flip()
         self.interface.draw(State.screen)
+        State.screen.flip()
+
 
     def draw_renderer(self):
         """renderer draws map layers"""
