@@ -42,7 +42,7 @@ class gameEngine(Engine):
         #setting resolution
         resolution = Vec2d(resolution)
         #creating instance of our avatar in screen
-        self.avatar = objects.ourHero("horseman","horseman",(500, 770), resolution // 2)
+        self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
 
         #self.map is our map created with tile editor
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
@@ -145,12 +145,10 @@ class gameEngine(Engine):
         if self.key_down:
             self.update_keyboard_movement()     
         self.update_camera_position()
-        #self.renderer.set_rect(center=State.camera.rect.center)
         State.camera.update()
-        self.avatar.update(State.screen)
+        self.anim_avatar()
         State.hud.update(dt)
         #steps
-        self.draw_steps()
 
     def update_mouse_movement(self, pos):
         # Final destination.
@@ -159,33 +157,38 @@ class gameEngine(Engine):
         #if we have no destination we prepare the path!
         if (self.final_cell_id == None):
            #destination
+           pos = State.camera.screen_to_world(pos)
            self.final_cell_id = self.world.index_at(pos[0],pos[1])
            if(self.final_cell_id == None):
               return;
            row,col = self.world.get_cell_grid(self.final_cell_id)
            #origin
            camera = State.camera
-           wx, wy = camera.position
+           wx, wy = camera.target.position
            cell_id = self.world.index_at(wx,wy)
            orig_row,orig_col = self.world.get_cell_grid(cell_id)
+           print("avatar position: ",wx,wy," destination position: ",pos)
            if(orig_row == row and orig_col == col):
               return;
            #steps
            if(orig_row >= row):
               for i in range(row,orig_row):
+                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i)))) 
                  self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
            else:
                for i in range(orig_row,row):
+                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
                  self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
            if(orig_col >= col):
               for i in range(col,orig_col):
-                 #print("i,row : ",i,row) 
+                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row)))) 
                  self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
            else:
                for i in range(orig_col,col):
-                 #print("i,row : ",i,row) 
+                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row)))) 
                  self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
         else:
+           pos = State.camera.screen_to_world(pos)
            cell = self.world.index_at(pos[0],pos[1])
            #if clicked the same destination again
            #movement starts!!
@@ -193,41 +196,46 @@ class gameEngine(Engine):
               pos = self.world.get_cell_pos(self.step.pop(0))
               self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
            else:
+              self.step.clear()
               self.final_cell_id = cell
               if(self.final_cell_id == None):
                  return;
               row,col = self.world.get_cell_grid(self.final_cell_id)
               #origin
               camera = State.camera
-              wx, wy = camera.position
+              wx, wy = camera.target.position
+
               cell_id = self.world.index_at(wx,wy)
               orig_row,orig_col = self.world.get_cell_grid(cell_id)
+              print("avatar position: ",wx,wy," destination position: ",pos)
               if(orig_row == row and orig_col == col):
                  return;
               #steps
               if(orig_row >= row):
                  for i in range(row,orig_row):
+                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
                     self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
               else:
                  for i in range(orig_row,row):
+                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
                     self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
               if(orig_col >= col):
                  for i in range(col,orig_col):
-                    #print("i,row : ",i,row) 
+                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row))))
                     self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
               else:
                  for i in range(orig_col,col):
-                    #print("i,row : ",i,row) 
+                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row))))
                     self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
         # Current position.
         camera = State.camera
-        wx, wy = camera.position
+        wx, wy = camera.target.position
         cell_id = self.world.index_at(wx,wy)
         row,col = self.world.get_cell_grid(cell_id)
-        print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
+        #print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
         #new situation of new cell
         if(row == 0 and self.move_y < 0):
            new_row = row
@@ -248,10 +256,11 @@ class gameEngine(Engine):
            row,col = self.world.get_cell_grid(cell_id)
            self.new_x += self.cell_size/2
            self.new_y += self.cell_size/2
-           print("a la position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+           #print("a la position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
  
         
     def update_camera_position(self):
+        camera = State.camera
         """Step the camera's position if self.move_to contains a value.
         """
         #print("mover a",self.move_to)
@@ -355,27 +364,31 @@ class gameEngine(Engine):
                 #print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
             if newx < rect.left:
                 newx = rect.left 
-            elif newx  > rect.right:
-                newx = rect.right
+            elif newx  >= rect.right:
+                newx = rect.right - self.cell_size/2
             if newy  < rect.top:
                 newy = rect.top 
-            elif newy  > rect.bottom:
-                newy = rect.bottom 
+            elif newy  >= rect.bottom:
+                newy = rect.bottom - self.cell_size/2
             camera.position = newx, newy
-            self.avatar_group.add(self.avatar)
+            print(newx,newy)
+            self.avatar.position = camera.target.position
+            #self.avatar_group.add(self.avatar)
         else:
             self.avatar.stopMove(Vec2d(0,0))
-            self.avatar_group.add(self.avatar)
+            self.avatar.position = camera.target.position
+            #self.avatar_group.add(self.avatar)
         
     def draw(self, interp):
         """overrides Engine.draw"""
         # Draw stuff.
         State.screen.clear()
+        #self.anim_avatar()
         self.draw_renderer()
         if False:
            self.draw_debug()
-        self.draw_steps()
         State.hud.draw()
+        self.draw_steps()
         self.interface.draw(State.screen)
         State.screen.flip()
 
@@ -411,7 +424,6 @@ class gameEngine(Engine):
         if(self.step == []):
           return;
     
-           
         camera = State.camera
         for element in self.step:
            x,y  = self.world.get_cell_pos(element)
@@ -419,8 +431,9 @@ class gameEngine(Engine):
            y += self.cell_size/2
            arrow = objects.arrow_step("arrow.png","misc",(x,y))
            #drawing arrow!
-           print("drawing arrow")       
-           camera.surface.blit(arrow.image, arrow.position)
+           #print("drawing arrow") 
+           #self.avatar_group.add(arrow)
+           camera.surface.blit(arrow.image, camera.world_to_screen(arrow.position))
 
     
     def draw_debug(self):
@@ -459,11 +472,13 @@ class gameEngine(Engine):
                     points = [world_to_screen(p) for p in thing.points]
                     draw_poly(display, color, True, points)
     
-    def draw_avatar(self):
-        camera = State.camera
-        avatar = camera.target
-        camera.surface.blit(avatar.image, avatar.screen_position)
-        #self.avatar.draw(self.screen)
+    def anim_avatar(self):
+        #self.avatar.update()
+        #camera = State.camera
+        #avatar = camera.target
+        #camera.surface.blit(avatar.image, camera.world_to_screen(avatar.position))
+        self.avatar.update()
+        self.avatar_group.add(self.avatar)
         
     def on_mouse_button_down(self, pos, button):
         self.mouse_down = True

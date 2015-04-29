@@ -113,56 +113,44 @@ class ourHero(object):
 
 
  def move(self,direction):
+   self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
    self.dir = direction
    self.movement = 1
-   #if(self.direction == DOWN):
-      #self.y = self.y + WALKRATE
-      #self._position = Vec2d(self.x,self.y)
-      #self.dir = Vec2d(0.0, 5.0)
-   #elif self.direction == UP:
-      #self.y = self.y - WALKRATE
-      #self._position = Vec2d(self.x,self.y)
-      #self.dir = Vec2d(0.0, -5.0)
-   #elif(self.direction == LEFT):
-      #self.x = self.x - WALKRATE
-      #self._position = Vec2d(self.x,self.y)
-      #self.dir = Vec2d(-5.0, 0.0)
-   #elif self.direction == RIGHT:
-      #self.x = self.x + WALKRATE
-      #self._position = Vec2d(self.x,self.y)
-      #self.dir = Vec2d(5.0, 0.0)		 
+
+ def stopMove(self,direction):
+   self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
+   self.dir = direction
+   self.movement = 0
+		 
  def getRect(self):
    return self.rect
 
- def stopMove(self,direction):
-   self.dir = direction
-   self.movement = 0
-
- def update(self,screen):
+ def update(self): #no screen
    self.x = self.position[0]
    self.y = self.position[1]
    if self.movement:
-      self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
+      #self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
       if self.dir.x > 0:
-         self.animObjs['-n-run'].blit(screen, (self.x, self.y))
+         #self.animObjs['-n-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-se-run'].getCurrentFrame()
          self.image_stand = self.right_standing
       elif self.dir.x <= 0:
-         self.animObjs['-s-run'].blit(screen, (self.x, self.y))
+         #self.animObjs['-s-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-sw-run'].getCurrentFrame()
          self.image_stand = self.left_standing
   
    else:
-      self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
+      #self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
       if(self.image_stand == None):
          self.image = self.right_standing
-         screen.blit(self.image, (self.x, self.y))
+         #screen.blit(self.image, (self.x, self.y))
       else:
          self.image = self.image_stand
-         screen.blit(self.image, (self.x, self.y))
+         #screen.blit(self.image, (self.x, self.y))
 
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
+
 
 class arrow_step(object):
 
