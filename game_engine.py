@@ -257,6 +257,7 @@ class gameEngine(Engine):
            self.new_x += self.cell_size/2
            self.new_y += self.cell_size/2
            #print("a la position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+        self.step.clear()
  
         
     def update_camera_position(self):

@@ -3,7 +3,7 @@ Freedom Fighters of Might & Magic
 
 Freedom Fighters of Might & Magic is a strategy/rpg game based on the Heroes of Might & Magic saga. FFMM will be different with its own rules and it won't be a pure clone version.
 
-For now it's in alpha version, with only the movement of the hero over the map, with a basic hud.
+For now it's in alpha version, is not playable.
 
 me (gentooza), I've just begun using python at work, and seeing how easy is to use it I've started to build a game (the dream of any boring industrial programmer) :-)
 

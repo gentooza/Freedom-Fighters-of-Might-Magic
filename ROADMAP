@@ -1,12 +1,21 @@
-V0.0.3 current
+V0.0.4
 ---------------------
 
 
-V0.0.2 2015/04/16
+V0.0.3 ALPHA 2015/04/29
+---------------------
++ minimap is back
++ map loading from tiles map generator
++ using now map layers, for terrain and for avatar
++ basic gui in game screen
++ mouse movement implementation initiated (not finished yet)
+
+V0.0.2 ALPHA 2015/04/16
 ---------------------
 + python3 migration
 + our creature as hero class, not as thing in things (of the engine)
-V0.0.1 2015/04/13
+
+V0.0.1 ALPHA 2015/04/13
 ---------------------
 + insert gunmworld2 in project
 + make a basic map from a repeated tile
@@ -14,7 +23,7 @@ V0.0.1 2015/04/13
 + minimap
 = move minimap
 
-V0.0.0 2015/04/09
+V0.0.0 ALPHA 2015/04/09
 ---------------------
 + basic main menu screen
 + basic game screen with our creature inside
