@@ -40,9 +40,9 @@ class gameInterface(object):
    def __init__(self, screen):
 
       #loading images
-      self.menubar =  utils.load_png("gui/menubar.png")
+      self.menubar =  utils.load_png("gui/menubar_.png")
       self.minimap = utils.load_png("gui/minimap.png")
-      self.sidebar = utils.load_png("gui/sidebar.png")
+      self.sidebar = utils.load_png("gui/sidebar_.png")
  
       #position, not positioned yet
       self.menubar_rect = self.menubar.get_rect()
@@ -54,8 +54,8 @@ class gameInterface(object):
       self.sidebar_rect = pygame.Rect(833, 265, 181, 700)
       #creating mini screens from state screen, method obtained from example 10_minimap.py of gummlib2
       self.menubar_screen = View(screen.surface, self.menubar_rect)
-      self.minimap_screen = View(screen.surface, self.menubar_rect)
-      self.sidebar_screen = View(screen.surface, self.menubar_rect)
+      self.minimap_screen = View(screen.surface, self.minimap_rect)
+      self.sidebar_screen = View(screen.surface, self.sidebar_rect)
 
     #def update(self, dt):
 
@@ -77,9 +77,9 @@ class gameInterface(object):
        pygame.draw.rect(screen.surface,(99, 99, 99), self.sidebar_rect, 1)
        #blitting panels
        self.menubar_screen.surface.blit(self.menubar,(0,0))
-       self.minimap_screen.surface.blit(self.minimap,(833,0))
-       self.sidebar_screen.surface.blit(self.sidebar,(833,265))
+       self.minimap_screen.surface.blit(self.minimap,(0,0))
+       self.sidebar_screen.surface.blit(self.sidebar,(0,0))
        #screen.blit(self.menubar,(0,0))
        #screen.blit(self.minimap,(833,0))
        #screen.blit(self.sidebar,(833,265))
-       print("drawing panels!")
+       #print("drawing panels!")
