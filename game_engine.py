@@ -389,7 +389,7 @@ class gameEngine(Engine):
            self.draw_debug()
         State.hud.draw()
         self.draw_steps()
-        self.interface.draw(State.screen)
+        self.interface.draw(State.screen,self.avatar_group)
         State.screen.flip()
 
 
