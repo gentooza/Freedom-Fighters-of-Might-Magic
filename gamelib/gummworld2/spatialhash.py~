@@ -305,7 +305,7 @@ class SpatialHash(object):
         cols = self.cols
         cell_id = row + col*cols
         
-        return get_cell(cell_id)
+        return self.get_cell(cell_id)
 
     def get_cell_grid(self, cell_id):
         """Return the (col,row) coordinate for cell id.

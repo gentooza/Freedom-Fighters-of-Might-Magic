@@ -164,6 +164,51 @@ class ourHero(object):
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
 
+class arrow_step(object):
+
+ def __init__(self,image,path,map_pos):
+   self._position = Vec2d(0,0) # x e y? funciones de gummworld2
+   self.movement = 0
+   #self.direction = DOWN
+   self.dir = Vec2d(0.0, 0.0)
+   #images loading
+   arrow_image = path + '/'+ image
+   self.right_arrow = utils.load_png(arrow_image)
+   self.image = self.right_arrow
+
+   self.rect = self.right_arrow.get_rect()
+
+   #start direction
+   #self.direction = DOWN
+   self.x = map_pos[0]
+   self.y = map_pos[1]
+   self.position = map_pos
+
+ def getpoints(self):
+    r = self.rect
+    return r.topleft, r.topright, r.bottomright, r.bottomleft
+ points = property(getpoints)
+
+ def getposition(self):
+    """GOTCHA: Something like "rect_geom.position.x += 1" will not do what
+    you expect. That operation does not update the rect instance variable.
+    Instead use "rect_geom.position += (1,0)".
+    """
+    return self._position
+
+ def setposition(self, val):
+    p = self._position
+    p.x, p.y = val
+    self.rect.center = round(p.x), round(p.y)
+ position = property(getposition, setposition)
+		 
+ def getRect(self):
+   return self.rect
+
+ def stopMove(self,direction):
+   self.dir = direction
+   self.movement = 0
+
 
 	
 

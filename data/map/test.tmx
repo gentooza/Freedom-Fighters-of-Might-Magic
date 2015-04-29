@@ -6,9 +6,14 @@
    <objectgroup draworder="index"/>
   </tile>
  </tileset>
- <layer name="Capa de Patrones 1" width="20" height="20">
+ <layer name="ground" width="20" height="20">
   <data encoding="base64" compression="zlib">
    eJzN0jsKACAQQ8Gs9z+0fUBQ8oQUaWe/I2mCLEtikZ47iXey3Lut8+pR/dHztljEj5B/m1qN+TEXaVIWfcd2L93fBiMeAeA=
+  </data>
+ </layer>
+ <layer name="freedom fighters" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjIJRMApIBwAGQAAB
   </data>
  </layer>
 </map>

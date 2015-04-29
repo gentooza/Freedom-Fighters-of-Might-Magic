@@ -300,12 +300,7 @@ class SpatialHash(object):
         if self.sort_key:
             objs.sort(key=self.sort_key)
         return objs
-#gentooza, quick and dirty hack, added function. THIS to derived class
-    def get_cell_id_by_grid(self,col,row):
-        cols = self.cols
-        cell_id = row + col*cols
-        
-        return self.get_cell(cell_id)
+
 
     def get_cell_grid(self, cell_id):
         """Return the (col,row) coordinate for cell id.

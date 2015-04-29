@@ -17,6 +17,8 @@
 """game_engine.py is the gummworld derived engine class for the ffmm
 
 """
+import sys
+import cProfile, pstats
 
 
 
@@ -26,31 +28,69 @@ from pygame.locals import *
 
 import paths
 import gummworld2
-from gummworld2 import *
+from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
+import game_interface
 import ffmm_spatialhash
 
 
 class gameEngine(Engine):
     
-    def __init__(self, resolution=(800, 600),strcaption = "no caption"):
+    def __init__(self, resolution=(1014, 965),strcaption = "no caption"):
         #setting resolution
         resolution = Vec2d(resolution)
         #creating instance of our avatar in screen
         self.avatar = objects.ourHero("horseman","horseman",(500, 770), resolution // 2)
+
+        #self.map is our map created with tile editor
+        worldmap = TiledMap(data.filepath('map', 'test.tmx'))
+        #heores layer of the map edited with Tiled
+        self.avatar_group = worldmap.layers[1]
+        ## Tell the renderer this layer needs to be sorted, and how to.
+        self.avatar_group.objects.sort_key = lambda o: o.rect.bottom
+
         #engine initialization
         #   camera target: our avatar
         Engine.__init__(self, caption=strcaption,
-                        camera_target= self.avatar,resolution=resolution, frame_speed=0)
-        #self.map is our map created with tile editor
-        self.map = TiledMap(data.filepath('map', 'test.tmx'))
+                        camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 938))
+
+        # Conserve CPU.
+        State.clock.use_wait = True
+
+        ## Insert avatar into the Fringe layer.
+        self.avatar_group.add(self.avatar)
+
+        ## The renderer.
+        self.renderer = BasicMapRenderer(
+            worldmap, max_scroll_speed=State.speed)
+        ## New requirement. When renderer draws dynamic layers (e.g. Fringe)
+        ## we need to tell it to redraw the changed tiles. This also is done
+        ## in the draw cycle; see self.draw_renderer().
+        self.dirty_rect = Rect(self.avatar.rect)
+        self.renderer.set_dirty(self.dirty_rect)
+
+        # I like huds.
+        ui.text_color = Color('black')
+        toolkit.make_hud()
+        State.hud.add('Max FPS',
+                      Statf(State.hud.next_pos(), 'Max FPS {:.0f}',
+                            callback=lambda: (State.clock.max_fps,), interval=1.0))
+        State.hud.add('Use Wait',
+                      Statf(State.hud.next_pos(), 'Use Wait {}',
+                            callback=lambda: (State.clock.use_wait,), interval=1.0))
+        State.hud.add('Tile Size',
+                      Statf(State.hud.next_pos(), 'Tile Size {} pixels (key={})',
+                            callback=lambda: (self.renderer.tile_size, State.camera.rect.w // self.renderer.tile_size),
+                            interval=1.0))
+
+
         #create world with map size and the cell size
-        self.cell_size = 50
-        self.world = ffmm_spatialhash.game_SpatialHash(self.map.rect, self.cell_size)
+        self.cell_size = 60
+        self.world = ffmm_spatialhash.game_SpatialHash(worldmap.rect, self.cell_size)
         #  no idea
-        self.set_state()
+        #self.set_state()
         #load entities from map, I think here we see collision rects, i.e.
         #removed temporally
         #entities, tilesheets = toolkit.load_entities(data.filepath('map', 'mini2.entities'))
@@ -69,6 +109,9 @@ class gameEngine(Engine):
         self.mouse_down = False
         self.side_steps = []
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
+        self.final_cell_id = None
+        self.step = []
+        self.path = 'stop'
 
         #keyboard managment
         self.key_down = False
@@ -87,6 +130,9 @@ class gameEngine(Engine):
         # I like huds.
         toolkit.make_hud()
         State.clock.schedule_interval(State.hud.update, 1.0)
+     
+        #game interface!
+        self.interface = game_interface.gameInterface()
     
     #def setScreen(self, screen):
     #    self.screen = screen
@@ -94,28 +140,86 @@ class gameEngine(Engine):
     def update(self, dt):
         """overrides Engine.update"""
         # If mouse button is held down update for continuous walking.
-        #if self.mouse_down:
-        #    self.update_mouse_movement(pygame.mouse.get_pos())
+        if self.mouse_down:
+            self.update_mouse_movement(pygame.mouse.get_pos())
         if self.key_down:
             self.update_keyboard_movement()     
         self.update_camera_position()
-        self.renderer.set_rect(center=State.camera.rect.center)
+        #self.renderer.set_rect(center=State.camera.rect.center)
         State.camera.update()
         self.avatar.update(State.screen)
-  
+        State.hud.update(dt)
+        #steps
+        self.draw_steps()
 
     def update_mouse_movement(self, pos):
         # Final destination.
         self.move_to = None
-        for edge in self.speed_box.edges:
-            # line_intersects_line() returns False or (True,(x,y)).
-            cross = geometry.line_intersects_line(edge, (self.speed_box.center, pos))
-            if cross:
-                x, y = cross[0]
-                self.move_to = State.camera.screen_to_world(pos)
-                self.speed = geometry.distance(
-                    self.speed_box.center, (x, y)) / self.max_speed_box
-                break
+        # we need tl paint arrows to destination
+        #if we have no destination we prepare the path!
+        if (self.final_cell_id == None):
+           #destination
+           self.final_cell_id = self.world.index_at(pos[0],pos[1])
+           if(self.final_cell_id == None):
+              return;
+           row,col = self.world.get_cell_grid(self.final_cell_id)
+           #origin
+           camera = State.camera
+           wx, wy = camera.position
+           cell_id = self.world.index_at(wx,wy)
+           orig_row,orig_col = self.world.get_cell_grid(cell_id)
+           if(orig_row == row and orig_col == col):
+              return;
+           #steps
+           if(orig_row >= row):
+              for i in range(row,orig_row):
+                 self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
+           else:
+               for i in range(orig_row,row):
+                 self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
+           if(orig_col >= col):
+              for i in range(col,orig_col):
+                 #print("i,row : ",i,row) 
+                 self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+           else:
+               for i in range(orig_col,col):
+                 #print("i,row : ",i,row) 
+                 self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+        else:
+           cell = self.world.index_at(pos[0],pos[1])
+           #if clicked the same destination again
+           #movement starts!!
+           if(cell == self.final_cell_id):
+              pos = self.world.get_cell_pos(self.step.pop(0))
+              self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
+           else:
+              self.final_cell_id = cell
+              if(self.final_cell_id == None):
+                 return;
+              row,col = self.world.get_cell_grid(self.final_cell_id)
+              #origin
+              camera = State.camera
+              wx, wy = camera.position
+              cell_id = self.world.index_at(wx,wy)
+              orig_row,orig_col = self.world.get_cell_grid(cell_id)
+              if(orig_row == row and orig_col == col):
+                 return;
+              #steps
+              if(orig_row >= row):
+                 for i in range(row,orig_row):
+                    self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
+              else:
+                 for i in range(orig_row,row):
+                    self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
+              if(orig_col >= col):
+                 for i in range(col,orig_col):
+                    #print("i,row : ",i,row) 
+                    self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+              else:
+                 for i in range(orig_col,col):
+                    #print("i,row : ",i,row) 
+                    self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+
     #keyboard movement between cells
     def update_keyboard_movement(self):
         # Current position.
@@ -125,8 +229,14 @@ class gameEngine(Engine):
         row,col = self.world.get_cell_grid(cell_id)
         print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
         #new situation of new cell
-        new_row = row + self.move_y
-        new_col = col + self.move_x
+        if(row == 0 and self.move_y < 0):
+           new_row = row
+        else:
+           new_row = row + self.move_y
+        if(col == 0 and self.move_x < 0):
+           new_col = col
+        else:
+           new_col = col + self.move_x
         #does it exist?
         cell = self.world.get_cell_by_grid(new_col,new_row)
         if(cell == None):
@@ -145,29 +255,27 @@ class gameEngine(Engine):
         """Step the camera's position if self.move_to contains a value.
         """
         #print("mover a",self.move_to)
-        if self.move_to is not None:
+    #    if (self.final_cell_id != None and self.move_to != None):
             # Current position.
-            camera = State.camera
-            wx, wy = camera.position
+    #        camera = State.camera
+    #        wx, wy = camera.position
+    #        self.new_x = self.move_to[0]
+    #        self.new_y = self.move_to[1]
             #print("coordenadas",wx,wy)
             #set dir to avatar
-            direction = Vec2d(self.move_to[0]-wx,self.move_to[1]-wy)
+    #        direction = Vec2d(self.move_to[0]-wx,self.move_to[1]-wy)
             #print("DIRECCION!:",direction)
-            self.avatar.move(direction)
-            # Speed formula.
-            speed = self.speed * State.speed
-            # newx,newy is the new vector, which will be adjusted to avoid
-            # collisions...
+    #        self.avatar.move(direction)
+    #        newx, newy = self.new_x,self.new_y
 
-            if geometry.distance((wx, wy), self.move_to) < speed:
-                # If within spitting distance, a full step would overshoot the
-                # destination. Therefore, jump right to it.
-                newx, newy = self.move_to
-                self.move_to = None
-            else:
-                # Otherwise, calculate the full step.
-                angle = geometry.angle_of((wx, wy), self.move_to)
-                newx, newy = geometry.point_on_circumference((wx, wy), speed, angle)
+            #new step
+    #        pos = self.world.get_cell_pos(self.step.pop(0))
+    #        if(pos == None):
+    #           #finished
+    #           self.final_cell_id = None
+    #           self.move_to = None
+    #        else:
+    #           self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
         #by keyboard
         if(self.move_x != 0 or self.move_y !=0):
             # Current position.
@@ -189,7 +297,8 @@ class gameEngine(Engine):
             #this is only a test
             newx, newy = self.new_x,self.new_y
 
-        if self.move_to is not None or self.move_x != 0 or self.move_y != 0:   
+     #   if self.move_to is not None or self.move_x != 0 or self.move_y != 0:  
+        if(self.move_x != 0 or self.move_y != 0):
             # Check world collisions.
 
             world = State.world
@@ -199,72 +308,127 @@ class gameEngine(Engine):
             dummy.rect = dummy.getRect()
             #gentooza
             #true collisions should be edited here, in can_step, taking care of the sprite rect
-            def can_step(step):
-                dummy.position = step
+            #COLLISIONS WITH LAYER
+            #def can_step(step):
+            #    dummy.position = step
                 #print("AVATAR POSITION!!",step)
                 #print("AVATAR POSITION 2!!",dummy.getposition())
-                return not world.collideany(dummy)
+            #    return not world.collideany(dummy)
 
             # Remove camera target so it's not a factor in collisions.
-            world.remove(camera_target)
-            move_ok = can_step((newx, newy)) #we can trick can_step to aproach, or get far away a sprite from bounds,gentooza
+            #world.remove(camera_target)
+            #move_ok = can_step((newx, newy)) #we can trick can_step to aproach, or get far away a sprite from bounds,gentooza
 
             # We hit something. Try side-stepping.
-            if not move_ok:
-                newx = wx + pygame_utils.sign(newx - wx) * speed
-                newy = wy + pygame_utils.sign(newy - wy) * speed
-                
-                for side_step in ((newx, wy),(wx, newy)):
-                    move_ok = can_step(side_step)
-                    if move_ok:
-                        newx, newy = side_step
+            #if not move_ok:
+            #    newx = wx + pygame_utils.sign(newx - wx) * speed
+            #    newy = wy + pygame_utils.sign(newy - wy) * speed
+            #    
+            #    for side_step in ((newx, wy),(wx, newy)):
+            #        move_ok = can_step(side_step)
+            #        if move_ok:
+            #            newx, newy = side_step
                         # End move_to if side-stepping backward from previous.
                         # This happens if we're trying to get through an
                         # obstacle with no valid path to take.
-                        newstep = newx - wx, newy - wy
-                        self.side_steps.append(newstep)
-                        self.side_steps = self.side_steps[-2:]
-                        for step in self.side_steps[:1]:
-                            if step != newstep:
-                                self.move_to = None
-                                self.move_x = self.move_y = self.new_x = self.new_y = 0
-                                break
-                        break
-            else:
-                del self.side_steps[:]
+            #            newstep = newx - wx, newy - wy
+            #            self.side_steps.append(newstep)
+            #            self.side_steps = self.side_steps[-2:]
+            #            for step in self.side_steps[:1]:
+            #                if step != newstep:
+            #                    self.move_to = None
+            #                    self.move_x = self.move_y = self.new_x = self.new_y = 0
+            #                     break
+            #            break
+            #else:
+            #    del self.side_steps[:]
             
             # Either we can move, or not.
-            if not move_ok:
+            #if not move_ok:
                 # Reset camera position.
-                self.move_to = None
-                self.move_x = self.move_y = self.new_x = self.new_y =  0
-            else:
+            #    self.move_to = None
+            #    self.move_x = self.move_y = self.new_x = self.new_y =  0
+            #else:
                 # Keep avatar inside map bounds.
-                rect = State.world.rect
+            rect = State.world.rect
                 #avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
                 #print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
-                if newx < rect.left:
-                    newx = rect.left 
-                elif newx  > rect.right:
-                    newx = rect.right
-                if newy  < rect.top:
-                    newy = rect.top 
-                elif newy  > rect.bottom:
-                    newy = rect.bottom 
-                camera.position = newx, newy
+            if newx < rect.left:
+                newx = rect.left 
+            elif newx  > rect.right:
+                newx = rect.right
+            if newy  < rect.top:
+                newy = rect.top 
+            elif newy  > rect.bottom:
+                newy = rect.bottom 
+            camera.position = newx, newy
+            self.avatar_group.add(self.avatar)
         else:
             self.avatar.stopMove(Vec2d(0,0))
+            self.avatar_group.add(self.avatar)
         
     def draw(self, interp):
         """overrides Engine.draw"""
         # Draw stuff.
         State.screen.clear()
-        self.renderer.draw_tiles()
-        self.draw_world()
+        self.draw_renderer()
+        if False:
+           self.draw_debug()
+        self.draw_steps()
         State.hud.draw()
-        self.draw_avatar()
         State.screen.flip()
+        self.interface.draw(State.screen)
+
+    def draw_renderer(self):
+        """renderer draws map layers"""
         
+        renderer = self.renderer
+        
+        # If panning, mark the renderer's tiles dirty where avatar is.
+        panning = False
+        camera = State.camera
+        camera_rect = camera.rect
+        dirty_rect = self.dirty_rect
+        camera_center = camera_rect.center
+        if camera.target.rect.center != camera_center:
+            dirty_rect.center = camera_center
+            renderer.set_dirty(dirty_rect)
+            panning = True
+        
+        # Set render's rect and draw the screen.
+        renderer.set_rect(center=camera_center)
+        renderer.draw_tiles()
+        
+        # Must mark dirty rect before next call to draw(), otherwise avatar
+        # leaves little artifacts behind.
+        if panning:
+            renderer.set_dirty(dirty_rect)
+
+    def draw_steps(self):
+        self.arrows = None
+        
+        if(self.step == []):
+          return;
+    
+           
+        camera = State.camera
+        for element in self.step:
+           x,y  = self.world.get_cell_pos(element)
+           x += self.cell_size/2
+           y += self.cell_size/2
+           arrow = objects.arrow_step("arrow.png","misc",(x,y))
+           #drawing arrow!
+           print("drawing arrow")       
+           camera.surface.blit(arrow.image, arrow.position)
+
+    
+    def draw_debug(self):
+        # draw the hitbox and speed box
+        camera = State.camera
+        cx, cy = camera.rect.topleft
+        rect = self.avatar.hitbox
+        pygame.draw.rect(camera.surface, Color('red'), rect.move(-cx, -cy))
+        pygame.draw.polygon(camera.surface, Color('white'), self.speed_box.corners, 1)      
     def draw_world(self):
         """Draw the on-screen shapes in the world.
         """
