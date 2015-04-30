@@ -34,6 +34,7 @@ from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 import objects
 import game_interface
 import ffmm_spatialhash
+import path_finding
 
 
 class gameEngine(Engine):
@@ -110,8 +111,8 @@ class gameEngine(Engine):
         self.side_steps = []
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
         self.final_cell_id = None
-        self.step = []
-        self.path = 'stop'
+        self.path = []
+        #self.path = 'stop'
 
         #keyboard managment
         self.key_down = False
@@ -119,6 +120,7 @@ class gameEngine(Engine):
         self.move_y = 0
         self.new_x = 0
         self.new_y = 0
+        self.step = Vec2d(0,0)
         
         State.show_world = False
         State.speed = 5
@@ -153,83 +155,42 @@ class gameEngine(Engine):
     def update_mouse_movement(self, pos):
         # Final destination.
         self.move_to = None
+        #checking map edges
+        rect = State.world.rect
+        world_pos = State.camera.screen_to_world(pos)
+        if world_pos[0] < rect.left:
+           return;
+        elif world_pos[0]  >= rect.right:
+           return;
+        if world_pos[1]  < rect.top:
+           return;
+        elif world_pos[1]  >= rect.bottom:
+           return;
         # we need tl paint arrows to destination
         #if we have no destination we prepare the path!
         if (self.final_cell_id == None):
-           #destination
-           pos = State.camera.screen_to_world(pos)
-           self.final_cell_id = self.world.index_at(pos[0],pos[1])
-           if(self.final_cell_id == None):
-              return;
-           row,col = self.world.get_cell_grid(self.final_cell_id)
-           #origin
-           camera = State.camera
-           wx, wy = camera.target.position
-           cell_id = self.world.index_at(wx,wy)
-           orig_row,orig_col = self.world.get_cell_grid(cell_id)
-           print("avatar position: ",wx,wy," destination position: ",pos)
-           if(orig_row == row and orig_col == col):
-              return;
-           #steps
-           if(orig_row >= row):
-              for i in range(row,orig_row):
-                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i)))) 
-                 self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
-           else:
-               for i in range(orig_row,row):
-                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
-                 self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
-           if(orig_col >= col):
-              for i in range(col,orig_col):
-                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row)))) 
-                 self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
-           else:
-               for i in range(orig_col,col):
-                 print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row)))) 
-                 self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world)
         else:
-           pos = State.camera.screen_to_world(pos)
-           cell = self.world.index_at(pos[0],pos[1])
+           world_pos = State.camera.screen_to_world(pos)
+           cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
-           if(cell == self.final_cell_id):
-              pos = self.world.get_cell_pos(self.step.pop(0))
+           if(cell == self.final_cell_id and self.path):
+              pos = self.world.get_cell_pos(self.path.pop(0))
               self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
+           #else, new path
            else:
-              self.step.clear()
-              self.final_cell_id = cell
-              if(self.final_cell_id == None):
-                 return;
-              row,col = self.world.get_cell_grid(self.final_cell_id)
-              #origin
-              camera = State.camera
-              wx, wy = camera.target.position
-
-              cell_id = self.world.index_at(wx,wy)
-              orig_row,orig_col = self.world.get_cell_grid(cell_id)
-              print("avatar position: ",wx,wy," destination position: ",pos)
-              if(orig_row == row and orig_col == col):
-                 return;
-              #steps
-              if(orig_row >= row):
-                 for i in range(row,orig_row):
-                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
-                    self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
-              else:
-                 for i in range(orig_row,row):
-                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(orig_col,i))))
-                    self.step.append(self.world.index(self.world.get_cell_by_grid(orig_col,i)))
-              if(orig_col >= col):
-                 for i in range(col,orig_col):
-                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row))))
-                    self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
-              else:
-                 for i in range(orig_col,col):
-                    print("x,y : ",self.world.get_cell_pos(self.world.index(self.world.get_cell_by_grid(i,row))))
-                    self.step.append(self.world.index(self.world.get_cell_by_grid(i,row)))
+              self.path.clear()
+              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world)
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
+        # Gummchange
+        if self.move_x == 0 and self.move_y == 0:
+            return
+        # print('CALCULATING MOVE_TO')
+        # end Gummchange
+      
         # Current position.
         camera = State.camera
         wx, wy = camera.target.position
@@ -256,129 +217,139 @@ class gameEngine(Engine):
            row,col = self.world.get_cell_grid(cell_id)
            self.new_x += self.cell_size/2
            self.new_y += self.cell_size/2
-           #print("a la position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
-        self.step.clear()
+           
+           # Gummchange
+           self.move_to = Vec2d(self.new_x, self.new_y)
+           self.step = Vec2d(self.move_x, self.move_y)
+           #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+        self.path.clear()
  
-        
     def update_camera_position(self):
-        camera = State.camera
-        """Step the camera's position if self.move_to contains a value.
-        """
-        #print("mover a",self.move_to)
-    #    if (self.final_cell_id != None and self.move_to != None):
-            # Current position.
-    #        camera = State.camera
-    #        wx, wy = camera.position
-    #        self.new_x = self.move_to[0]
-    #        self.new_y = self.move_to[1]
-            #print("coordenadas",wx,wy)
-            #set dir to avatar
-    #        direction = Vec2d(self.move_to[0]-wx,self.move_to[1]-wy)
-            #print("DIRECCION!:",direction)
-    #        self.avatar.move(direction)
-    #        newx, newy = self.new_x,self.new_y
-
-            #new step
-    #        pos = self.world.get_cell_pos(self.step.pop(0))
-    #        if(pos == None):
-    #           #finished
-    #           self.final_cell_id = None
-    #           self.move_to = None
-    #        else:
-    #           self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
-        #by keyboard
-        if(self.move_x != 0 or self.move_y !=0):
-            # Current position.
-            camera = State.camera
-            wx, wy = camera.position
-            #set dir to avatar
-            direction = Vec2d(self.move_x,self.move_y)
-            #print("DIRECCION!:",direction)
-            self.avatar.move(direction)
-
-            # Speed formula. 
-            #gentooza, set to 3 to test
-            #speed = 3
-            # newx,newy is the new vector, which will be adjusted to avoid
-            # collisions...
-            # GENTOOZA
-            #"*5" is the step length
-            # we need to know the tile size to move one tile here!
-            #this is only a test
-            newx, newy = self.new_x,self.new_y
-
-     #   if self.move_to is not None or self.move_x != 0 or self.move_y != 0:  
-        if(self.move_x != 0 or self.move_y != 0):
-            # Check world collisions.
-
-            world = State.world
-            camera_target = camera.target
-            dummy = self.faux_avatar
-            dummy.position = camera_target.position
-            dummy.rect = dummy.getRect()
-            #gentooza
-            #true collisions should be edited here, in can_step, taking care of the sprite rect
-            #COLLISIONS WITH LAYER
-            #def can_step(step):
-            #    dummy.position = step
-                #print("AVATAR POSITION!!",step)
-                #print("AVATAR POSITION 2!!",dummy.getposition())
-            #    return not world.collideany(dummy)
-
-            # Remove camera target so it's not a factor in collisions.
-            #world.remove(camera_target)
-            #move_ok = can_step((newx, newy)) #we can trick can_step to aproach, or get far away a sprite from bounds,gentooza
-
-            # We hit something. Try side-stepping.
-            #if not move_ok:
-            #    newx = wx + pygame_utils.sign(newx - wx) * speed
-            #    newy = wy + pygame_utils.sign(newy - wy) * speed
-            #    
-            #    for side_step in ((newx, wy),(wx, newy)):
-            #        move_ok = can_step(side_step)
-            #        if move_ok:
-            #            newx, newy = side_step
-                        # End move_to if side-stepping backward from previous.
-                        # This happens if we're trying to get through an
-                        # obstacle with no valid path to take.
-            #            newstep = newx - wx, newy - wy
-            #            self.side_steps.append(newstep)
-            #            self.side_steps = self.side_steps[-2:]
-            #            for step in self.side_steps[:1]:
-            #                if step != newstep:
-            #                    self.move_to = None
-            #                    self.move_x = self.move_y = self.new_x = self.new_y = 0
-            #                     break
-            #            break
-            #else:
-            #    del self.side_steps[:]
-            
-            # Either we can move, or not.
-            #if not move_ok:
-                # Reset camera position.
-            #    self.move_to = None
-            #    self.move_x = self.move_y = self.new_x = self.new_y =  0
-            #else:
-                # Keep avatar inside map bounds.
+        # if move_to, then the camera needs to keep stepping towards the destination tile.
+        if self.move_to:
+            print('STEP pos{} -> dest{} by step{}'.format(
+                tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
+            camx, camy = self.camera.position
+            stepx, stepy = self.step
+            # Check if camx has arrived at the move_to point. If it has set stepx to 0.
+            if camx == self.move_to[0]:
+                stepx = 0
+            # Check if camy has arrived at the move_to point. If it has set stepy to 0.
+            if camy == self.move_to[1]:
+                stepy = 0
+            #checking map edges
             rect = State.world.rect
-                #avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
-                #print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
-            if newx < rect.left:
-                newx = rect.left 
-            elif newx  >= rect.right:
-                newx = rect.right - self.cell_size/2
-            if newy  < rect.top:
-                newy = rect.top 
-            elif newy  >= rect.bottom:
-                newy = rect.bottom - self.cell_size/2
-            camera.position = newx, newy
-            print(newx,newy)
-            self.avatar.position = camera.target.position
-            #self.avatar_group.add(self.avatar)
-        else:
-            self.avatar.stopMove(Vec2d(0,0))
-            self.avatar.position = camera.target.position
-            #self.avatar_group.add(self.avatar)
+            if self.move_to[0] < rect.left:
+                stepx=0
+                stepy=0 
+            elif self.move_to[0]  >= rect.right:
+                stepx=0
+                stepy=0 
+            if self.move_to[1]  < rect.top:
+                stepx=0
+                stepy=0
+            elif self.move_to[1]  >= rect.bottom:
+                stepx=0
+                stepy=0
+            # If steps remain on the x or y axis, update the camera position. Else, the
+            # camera/avatar is done moving, so set self.move_to = None.
+            if stepx or stepy:
+                self.camera.position += stepx, stepy
+                #avatar animation
+                self.avatar.move(Vec2d(stepx,stepy))
+            else:
+                self.move_to = None
+                #avatar animation
+                self.avatar.stopMove(Vec2d(0,0))
+                
+       
+        
+#LEGACY    def update_camera_position(self):
+#        camera = State.camera
+# 
+#        if(self.move_x != 0 or self.move_y !=0):
+#            # Current position.
+#            camera = State.camera
+#            wx, wy = camera.position
+#            #set dir to avatar
+#            direction = Vec2d(self.move_x,self.move_y)
+#            #print("DIRECCION!:",direction)
+#            self.avatar.move(direction)
+#
+#            newx, newy = self.new_x,self.new_y
+#
+#     #   if self.move_to is not None or self.move_x != 0 or self.move_y != 0:  
+#        if(self.move_x != 0 or self.move_y != 0):
+#            # Check world collisions.
+#
+#            world = State.world
+#            camera_target = camera.target
+#            dummy = self.faux_avatar
+#            dummy.position = camera_target.position
+#            dummy.rect = dummy.getRect()
+#            #gentooza
+#            #true collisions should be edited here, in can_step, taking care of the sprite rect
+#            #COLLISIONS WITH LAYER
+#            #def can_step(step):
+#            #    dummy.position = step
+#                #print("AVATAR POSITION!!",step)
+#                #print("AVATAR POSITION 2!!",dummy.getposition())
+#            #    return not world.collideany(dummy)
+#
+#            # Remove camera target so it's not a factor in collisions.
+#            #world.remove(camera_target)
+#            #move_ok = can_step((newx, newy)) #we can trick can_step to aproach, or get far away a sprite from bounds,gentooza
+#
+#            # We hit something. Try side-stepping.
+#            #if not move_ok:
+#            #    newx = wx + pygame_utils.sign(newx - wx) * speed
+#            #    newy = wy + pygame_utils.sign(newy - wy) * speed
+#            #    
+#            #    for side_step in ((newx, wy),(wx, newy)):
+#            #        move_ok = can_step(side_step)
+#            #        if move_ok:
+#            #            newx, newy = side_step
+#                        # End move_to if side-stepping backward from previous.
+#                        # This happens if we're trying to get through an
+#                        # obstacle with no valid path to take.
+#            #            newstep = newx - wx, newy - wy
+#            #            self.side_steps.append(newstep)
+#            #            self.side_steps = self.side_steps[-2:]
+#            #            for step in self.side_steps[:1]:
+#            #                if step != newstep:
+#            #                    self.move_to = None
+#            #                    self.move_x = self.move_y = self.new_x = self.new_y = 0
+#            #                     break
+#            #            break
+#            #else:
+#            #    del self.side_steps[:]
+#            
+#            # Either we can move, or not.
+#            #if not move_ok:
+#                # Reset camera position.
+#            #    self.move_to = None
+#            #    self.move_x = self.move_y = self.new_x = self.new_y =  0
+#            #else:
+#                # Keep avatar inside map bounds.
+#            rect = State.world.rect
+#                #avatar_topleft,avatar_topright,avatar_bottomright,avatar_bottomleft = dummy.getpoints()
+#                #print("coordinates: ",newx,newy,"map limits: ",rect.left,rect.right,rect.top,rect.bottom,"sprite size: ",avatar_topright,avatar_topleft,avatar_bottomleft,avatar_bottomright)
+#            if newx < rect.left:
+#                newx = rect.left 
+#            elif newx  >= rect.right:
+#                newx = rect.right - self.cell_size/2
+#            if newy  < rect.top:
+#                newy = rect.top 
+#            elif newy  >= rect.bottom:
+#                newy = rect.bottom - self.cell_size/2
+#            camera.position = newx, newy
+#            print(newx,newy)
+#            self.avatar.position = camera.target.position
+#            #self.avatar_group.add(self.avatar)
+#        else:
+#            self.avatar.stopMove(Vec2d(0,0))
+#            self.avatar.position = camera.target.position
+#            #self.avatar_group.add(self.avatar)
         
     def draw(self, interp):
         """overrides Engine.draw"""
@@ -422,11 +393,11 @@ class gameEngine(Engine):
     def draw_steps(self):
         self.arrows = None
         
-        if(self.step == []):
+        if(self.path == []):
           return;
     
         camera = State.camera
-        for element in self.step:
+        for element in self.path:
            x,y  = self.world.get_cell_pos(element)
            x += self.cell_size/2
            y += self.cell_size/2
