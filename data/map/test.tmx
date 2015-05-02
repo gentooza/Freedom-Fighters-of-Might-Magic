@@ -2,13 +2,39 @@
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="60" tileheight="60" nextobjectid="1">
  <tileset firstgid="1" name="test" tilewidth="60" tileheight="60">
   <image source="test.png" width="120" height="120"/>
+  <tile id="0">
+   <properties>
+    <property name="move" value="1,2"/>
+   </properties>
+  </tile>
   <tile id="1">
+   <properties>
+    <property name="move" value="1"/>
+   </properties>
    <objectgroup draworder="index"/>
   </tile>
+  <tile id="2">
+   <properties>
+    <property name="move" value="1"/>
+   </properties>
+  </tile>
+  <tile id="3">
+   <properties>
+    <property name="move" value="1,2"/>
+   </properties>
+  </tile>
+ </tileset>
+ <tileset firstgid="5" name="obstacles" tilewidth="60" tileheight="60">
+  <image source="test_obstaculos.png" width="60" height="60"/>
  </tileset>
  <layer name="ground" width="20" height="20">
   <data encoding="base64" compression="zlib">
    eJzN0jsKACAQQ8Gs9z+0fUBQ8oQUaWe/I2mCLEtikZ47iXey3Lut8+pR/dHztljEj5B/m1qN+TEXaVIWfcd2L93fBiMeAeA=
+  </data>
+ </layer>
+ <layer name="collisions" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFpALWIWAetc0cBaNgFIwCdAAAY0wAFQ==
   </data>
  </layer>
  <layer name="freedom fighters" width="20" height="20">
@@ -16,4 +42,5 @@
    eJxjYBgFo2AUjIJRMApIBwAGQAAB
   </data>
  </layer>
+ <objectgroup name="terreno"/>
 </map>

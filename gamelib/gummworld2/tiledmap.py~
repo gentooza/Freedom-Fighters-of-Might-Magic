@@ -123,9 +123,7 @@ class TiledLayer(object):
         self.objects = spatialhash.SpatialHash(self.rect, cell_size)
         
         self.layeri = layeri
-        #added by gentooza
         self.layer = layer
-        ####
         self.name = layer.name
         self.properties = layer.properties
         self.visible = layer.visible

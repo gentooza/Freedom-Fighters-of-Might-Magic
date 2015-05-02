@@ -80,9 +80,9 @@ class ourHero(object):
    self.animObjs['-sw-run'].flip(True, False)
    self.animObjs['-sw-run'].makeTransformsPermanent()
 
-   self.image = self.animObjs['-se-run'].getCurrentFrame()
+   #self.image = self.animObjs['-se-run'].getCurrentFrame()
+   self.image = self.image_stand = self.front_standing
    self.rect = self.image.get_rect()
-   self.image_stand = None
 
    #move conductor
    self.moveConductor = pyganim.PygConductor(self.animObjs)
@@ -134,20 +134,14 @@ class ourHero(object):
          #self.animObjs['-n-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-se-run'].getCurrentFrame()
          self.image_stand = self.right_standing
-      elif self.dir.x <= 0:
+      else:
          #self.animObjs['-s-run'].blit(screen, (self.x, self.y))
          self.image = self.animObjs['-sw-run'].getCurrentFrame()
          self.image_stand = self.left_standing
-  
    else:
-      #self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
-      if(self.image_stand == None):
-         self.image = self.right_standing
-         #screen.blit(self.image, (self.x, self.y))
-      else:
          self.image = self.image_stand
          #screen.blit(self.image, (self.x, self.y))
-
+ 
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
 

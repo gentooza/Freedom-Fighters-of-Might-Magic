@@ -23,7 +23,7 @@ import cProfile, pstats
 
 
 import pygame
-from pygame.sprite import Sprite
+#from pygame.sprite import Sprite
 from pygame.locals import *
 
 import paths
@@ -49,6 +49,11 @@ class gameEngine(Engine):
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
         #heores layer of the map edited with Tiled
         self.avatar_group = worldmap.layers[1]
+        self.terrain_layer = worldmap.layers[0]
+        self.collision_layer = worldmap.layers[2]
+        #for element in  self.terrain_layer.objects:
+        #   print(element.properties)
+       
         ## Tell the renderer this layer needs to be sorted, and how to.
         self.avatar_group.objects.sort_key = lambda o: o.rect.bottom
 
@@ -121,6 +126,8 @@ class gameEngine(Engine):
         self.new_x = 0
         self.new_y = 0
         self.step = Vec2d(0,0)
+        self.laststepx = 0
+        self.laststepy = 0
         
         State.show_world = False
         State.speed = 5
@@ -169,7 +176,7 @@ class gameEngine(Engine):
         # we need tl paint arrows to destination
         #if we have no destination we prepare the path!
         if (self.final_cell_id == None):
-           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world)
+           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer)
         else:
            world_pos = State.camera.screen_to_world(pos)
            cell = self.world.index_at(world_pos[0],world_pos[1])
@@ -181,7 +188,7 @@ class gameEngine(Engine):
            #else, new path
            else:
               self.path.clear()
-              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world)
+              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer)
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
@@ -227,8 +234,8 @@ class gameEngine(Engine):
     def update_camera_position(self):
         # if move_to, then the camera needs to keep stepping towards the destination tile.
         if self.move_to:
-            print('STEP pos{} -> dest{} by step{}'.format(
-                tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
+            #print('STEP pos{} -> dest{} by step{}'.format(
+            #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
             stepx, stepy = self.step
             # Check if camx has arrived at the move_to point. If it has set stepx to 0.
@@ -254,13 +261,17 @@ class gameEngine(Engine):
             # If steps remain on the x or y axis, update the camera position. Else, the
             # camera/avatar is done moving, so set self.move_to = None.
             if stepx or stepy:
+                self.laststepx = stepx
+                self.laststepy = stepy
                 self.camera.position += stepx, stepy
                 #avatar animation
                 self.avatar.move(Vec2d(stepx,stepy))
             else:
+                #print("stop moving {},{}".format(int(self.laststepx),int(self.laststepy)))
                 self.move_to = None
                 #avatar animation
-                self.avatar.stopMove(Vec2d(0,0))
+                self.avatar.stopMove(Vec2d(self.laststepx,self.laststepy))
+                self.laststepx = self.laststepy = 0
                 
        
         
@@ -355,7 +366,6 @@ class gameEngine(Engine):
         """overrides Engine.draw"""
         # Draw stuff.
         State.screen.clear()
-        #self.anim_avatar()
         self.draw_renderer()
         if False:
            self.draw_debug()
@@ -402,9 +412,6 @@ class gameEngine(Engine):
            x += self.cell_size/2
            y += self.cell_size/2
            arrow = objects.arrow_step("arrow.png","misc",(x,y))
-           #drawing arrow!
-           #print("drawing arrow") 
-           #self.avatar_group.add(arrow)
            camera.surface.blit(arrow.image, camera.world_to_screen(arrow.position))
 
     
@@ -414,35 +421,9 @@ class gameEngine(Engine):
         cx, cy = camera.rect.topleft
         rect = self.avatar.hitbox
         pygame.draw.rect(camera.surface, Color('red'), rect.move(-cx, -cy))
-        pygame.draw.polygon(camera.surface, Color('white'), self.speed_box.corners, 1)      
-    def draw_world(self):
-        """Draw the on-screen shapes in the world.
-        """
-        if not State.show_world:
-            return
-        
-        camera = State.camera
-        camera_target = camera.target
-        things = State.world.intersect_objects(camera.rect)
-        display = camera.view.surface
-        world_to_screen = camera.world_to_screen
-        color = Color('white')
-        
-        draw_rect = pygame.draw.rect
-        draw_circle = pygame.draw.circle
-        draw_poly = pygame.draw.lines
-        
-        for thing in things:
-            if thing is not camera_target:
-                if isinstance(thing, RectGeometry):
-                    r = thing.rect.copy()
-                    r.center = world_to_screen(thing.position)
-                    draw_rect(display, color, r, 1)
-                elif isinstance(thing, CircleGeometry):
-                    draw_circle(display, color, world_to_screen(thing.position), thing.radius, 1)
-                elif isinstance(thing, PolyGeometry):
-                    points = [world_to_screen(p) for p in thing.points]
-                    draw_poly(display, color, True, points)
+        pygame.draw.polygon(camera.surface, Color('white'), self.speed_box.corners, 1)   
+   
+  
     
     def anim_avatar(self):
         #self.avatar.update()

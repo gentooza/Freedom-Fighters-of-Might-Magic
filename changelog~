@@ -1,0 +1,37 @@
+V0.0.4 ALPHA
+---------------------
+-obstáculos
+-movimiento ratón terminado, fallo: click sobre nuestro bicho, click:mueve a nuestro avatar, y no debería!
+- criatura en mapa
+- click segundo saca popup
+- limpiar un poco el código
+
+V0.0.3 ALPHA 2015/04/29
+---------------------
++ minimap is back
++ map loading from tiles map generator
++ using now map layers, for terrain and for avatar
++ basic gui in game screen
++ mouse movement implementation initiated (not finished yet)
+
+V0.0.2 ALPHA 2015/04/16
+---------------------
++ python3 migration
++ our creature as hero class, not as thing in things (of the engine)
+
+V0.0.1 ALPHA 2015/04/13
+---------------------
++ insert gunmworld2 in project
++ make a basic map from a repeated tile
++ our creature visible followed by the camera
++ minimap
+= move minimap
+
+V0.0.0 ALPHA 2015/04/09
+---------------------
++ basic main menu screen
++ basic game screen with our creature inside
++ our creature can move animated
++ insert pyganim in project
++ insert pygbutton in project
+
