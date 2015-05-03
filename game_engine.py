@@ -184,15 +184,29 @@ class gameEngine(Engine):
            #movement starts!!
            if(cell == self.final_cell_id and self.path):
               cell_id =  self.path.pop(0)
+              print('to cell id: ',cell_id)
               pos = self.world.get_cell_pos(cell_id)
-              self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
+           
+              self.move_to = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
               self.new_x = self.move_to[0] + self.cell_size/2
               self.new_y = self.move_to[1] + self.cell_size/2
               #step calculation
               o_col,o_row = self.world.get_cell_grid(cell)
               d_col,d_row = self.world.get_cell_grid(cell_id)
               
-              self.step = Vec2d( o_row-d_row,o_col-d_col)
+              if(o_row -d_row > 0):
+                 row = 1
+              elif(o_row - d_row < 0):
+                 row = -1
+              else:
+                 row = 0
+              if(o_col - d_col > 0):
+                 col = 1
+              elif(o_col - d_col < 0):
+                 col=-1
+              else:
+                 col = 0  
+              self.step = Vec2d( row,col)
               print(self.step)
              
               
