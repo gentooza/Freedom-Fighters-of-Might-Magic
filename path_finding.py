@@ -36,49 +36,76 @@ class cell(object):
    def __init__(self,ident,parent):
       self.id = ident
       self.parent = parent
-      self.H = None
-
-
-
+      self.H = 0
+      self.G = 0
 
 terrain_costs = {1 : 1.2 , 2 : 1}
-def  getting_adjacent(cell,dest_cell):
-   
-   for 
 
+def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer):
 
-def a_algorithm(orig_cell_id,final_cell_id,world,terrain_layer):
+   y,x =  world.get_cell_pos(orig_cell.id)
+   collide_rect = Rect(x-10,y-10,80,80)
+   adjacents = set()
+
+   cells = world.intersect_indices(collide_rect)
+   #print("adjacents!")
+   for element in cells:
+      cell_tmp = cell(element,orig_cell)
+      col,row = world.get_cell_grid(element)
+      o_col,o_row = world.get_cell_grid(orig_cell.id)
+
+      if(col != o_col or row != o_row): #we don't want to add the origin
+         #fixed cost
+         cell_tmp.G = terrain_layer.layer.content2D[row][col]
+         if(cell_tmp.G!=0): #if it's walkable      
+            #heuristic cost
+            o_col,o_row = world.get_cell_grid(orig_cell.id)
+            d_col,d_row = world.get_cell_grid(dest_cell.id)    
+            cell_tmp.H = (abs(d_row-row)+abs(d_col-col))*10 + cell_tmp.G
+            adjacents.add(cell_tmp)
+            #print('added in heuristics the cell id: ',cell_tmp.id)
+         #col,row = world.get_cell_grid(element)
+         #print(row,col,cell_tmp.G,cell_tmp.H)
+   #print("end adj")
+   return adjacents
+
+def a_algorithm(orig_cell,final_cell,world,terrain_layer):
    #A* method
    path = []
-   openlist = set()
-   closedlist = set()
+   closedList = set()
+   openList = set()
 
-   current = orig_cell_id
+   current = orig_cell
    def retracePath(c):
-        (x,y) = world.get_cell_pos(c.id)
+        #(x,y) = world.get_cell_pos(c.id)
         #cell size!
-        path.insert(0,(x+30,y+30))
+        #path.insert(0,(x+30,y+30))
+        path.insert(0,c.id)
         if c.parent == None:
             return
         retracePath(c.parent)
 
-   #adding adjacent tiles
-   getting_adjacent(current,final_cell_id)
-    world.get_cell_grid(orig_cell.id)
-
-   openList.append(current)
+   #adding adjacent cells
+   openList.add(current)
    while len(openList) is not 0:
-      current = min(openList, key=lambda inst:inst.H)
-      if current == end:
-         return retracePath(current)
-      openList.remove(current)
-      closedList.append(current)
-      for tile in graph[current]:
-         if tile not in closedList:
-            tile.H = (abs(end.x-tile.x)+abs(end.y-tile.y))*10 
+       print('from origen id: ',orig_cell.id,'   To destination id: ',final_cell.id)
+       current = min(openList, key=lambda inst:inst.H)
+       print('iteracion!!, elemento: ',current.id,current.H)
+       if current.id == final_cell.id: #finished
+          retracePath(current)
+          return path
+       openList.remove(current)
+       closedList.add(current)
+       for tile in getting_adjacent(current,final_cell,world,terrain_layer):
+          print(tile.id,tile.H)
+          if tile not in closedList:            
+            print('not in closedlist')
             if tile not in openList:
-               openList.append(tile)
+               print('added to openlist')
+               openList.add(tile)
             tile.parent = current
+       #input("Press Enter to continue...")
+   
    return path
    
 
@@ -105,11 +132,16 @@ def pos2steps(pos,world,terrain_layer):
       return path,None;
    orig_col,orig_row = world.get_cell_grid(orig_cell.id)
    idx= terrain_layer.layer.content2D[orig_row][orig_col]
+   orig_cell.G = idx
+   final_cell.G = terrain_layer.layer.content2D[row][col]
    #print(orig_col,orig_row,idx)
    #print(terrain_costs[idx])
    #steps
-   #path =  a_algorithm(orig_cell_id,final_cell_id,world,terrain_layer)
-  
+   
+   path =  a_algorithm(orig_cell,final_cell,world,terrain_layer)
+   print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
+   for element in path:
+      print(element)
 
    return path,final_cell.id
 

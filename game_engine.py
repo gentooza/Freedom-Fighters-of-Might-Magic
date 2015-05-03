@@ -183,8 +183,19 @@ class gameEngine(Engine):
            #if clicked the same destination again
            #movement starts!!
            if(cell == self.final_cell_id and self.path):
-              pos = self.world.get_cell_pos(self.path.pop(0))
+              cell_id =  self.path.pop(0)
+              pos = self.world.get_cell_pos(cell_id)
               self.move_to = pos[0]+self.cell_size/2,pos[1]+self.cell_size/2
+              self.new_x = self.move_to[0] + self.cell_size/2
+              self.new_y = self.move_to[1] + self.cell_size/2
+              #step calculation
+              o_col,o_row = self.world.get_cell_grid(cell)
+              d_col,d_row = self.world.get_cell_grid(cell_id)
+              
+              self.step = Vec2d( o_row-d_row,o_col-d_col)
+              print(self.step)
+             
+              
            #else, new path
            else:
               self.path.clear()
@@ -408,10 +419,10 @@ class gameEngine(Engine):
     
         camera = State.camera
         for element in self.path:
-           x,y  = self.world.get_cell_pos(element)
+           y,x  = self.world.get_cell_pos(element)
            x += self.cell_size/2
            y += self.cell_size/2
-           arrow = objects.arrow_step("arrow.png","misc",(x,y))
+           arrow = objects.arrow_step("dot-white.png","misc",(x,y))
            camera.surface.blit(arrow.image, camera.world_to_screen(arrow.position))
 
     
