@@ -117,6 +117,8 @@ class gameEngine(Engine):
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
         self.final_cell_id = None
         self.path = []
+        self.mouse_reponse = 3
+        self.iterator = 0
         #self.path = 'stop'
 
         #keyboard managment
@@ -149,8 +151,11 @@ class gameEngine(Engine):
     def update(self, dt):
         """overrides Engine.update"""
         # If mouse button is held down update for continuous walking.
-        if self.mouse_down:
-            self.update_mouse_movement(pygame.mouse.get_pos())
+        self.iterator+=1
+        if self.iterator >= self.mouse_reponse:
+           if self.mouse_down:
+               self.update_mouse_movement(pygame.mouse.get_pos())
+           self.iterator = 0
         if self.key_down:
             self.update_keyboard_movement()     
         self.update_camera_position()
@@ -184,6 +189,13 @@ class gameEngine(Engine):
            #movement starts!!
            if(cell == self.final_cell_id and self.path):
               cell_id =  self.path.pop(0)
+              #if cell 0 is origin we take the next
+              camera = State.camera
+              wx, wy = camera.target.position
+              cell_avatar = self.world.index_at(wx,wy)
+              if(cell_id == cell_avatar and self.path): 
+                   cell_id =  self.path.pop(0) 
+              ##
               print('to cell id: ',cell_id)
               pos = self.world.get_cell_pos(cell_id)
            
@@ -191,19 +203,19 @@ class gameEngine(Engine):
               self.new_x = self.move_to[0] + self.cell_size/2
               self.new_y = self.move_to[1] + self.cell_size/2
               #step calculation
-              o_col,o_row = self.world.get_cell_grid(cell)
+              o_col,o_row = self.world.get_cell_grid(cell_avatar)
               d_col,d_row = self.world.get_cell_grid(cell_id)
               
               if(o_row -d_row > 0):
-                 row = 1
-              elif(o_row - d_row < 0):
                  row = -1
+              elif(o_row - d_row < 0):
+                 row = 1
               else:
                  row = 0
               if(o_col - d_col > 0):
-                 col = 1
+                 col = -1
               elif(o_col - d_col < 0):
-                 col=-1
+                 col=1
               else:
                  col = 0  
               self.step = Vec2d( row,col)
