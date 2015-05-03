@@ -1,6 +1,6 @@
 V0.0.4 ALPHA
 ---------------------
--obstacles in map
+- obstacles in map
 - basic mouse movement with no obstacles detection and pathfinding
   - bugfix: click over avatar gives error
   - steps on the middle of cell
