@@ -36,6 +36,7 @@ import game_interface
 import ffmm_spatialhash
 import path_finding
 
+katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
 
 class gameEngine(Engine):
     
@@ -44,6 +45,8 @@ class gameEngine(Engine):
         resolution = Vec2d(resolution)
         #creating instance of our avatar in screen
         self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
+        self.avatar.team = 1
+        self.avatar.attr = katrin
 
         #self.map is our map created with tile editor
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
@@ -60,7 +63,7 @@ class gameEngine(Engine):
         #engine initialization
         #   camera target: our avatar
         Engine.__init__(self, caption=strcaption,
-                        camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 938))
+                        camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
 
         # Conserve CPU.
         State.clock.use_wait = True
@@ -112,7 +115,8 @@ class gameEngine(Engine):
         # Mouse and movement state. move_to is in world coordinates.
         self.move_to = None
         self.speed = None
-        self.mouse_down = False
+        self.mouse_down = False #left click
+        self.mouse_down2 = False  #right click
         self.side_steps = []
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
         self.final_cell_id = None
@@ -156,6 +160,8 @@ class gameEngine(Engine):
            if self.mouse_down:
                self.update_mouse_movement(pygame.mouse.get_pos())
            self.iterator = 0
+        if self.mouse_down2:
+           self.popup(pygame.mouse.get_pos())
         if self.key_down:
             self.update_keyboard_movement()     
         self.update_camera_position()
@@ -165,11 +171,10 @@ class gameEngine(Engine):
         #steps
 
     def update_mouse_movement(self, pos):
-        # Final destination.
-        self.move_to = None
         #checking map edges
         rect = State.world.rect
         world_pos = State.camera.screen_to_world(pos)
+        #if mouse click is outside the map we do nothing!
         if world_pos[0] < rect.left:
            return;
         elif world_pos[0]  >= rect.right:
@@ -178,49 +183,22 @@ class gameEngine(Engine):
            return;
         elif world_pos[1]  >= rect.bottom:
            return;
-        # we need tl paint arrows to destination
-        #if we have no destination we prepare the path!
+
+        # Final destination reset.
+        self.move_to = None
+        ##
+        #if we have no destination we prepare the path to the cell of coordinates given by mouse click!
         if (self.final_cell_id == None):
            self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer)
+        #if we already have a destination
         else:
            world_pos = State.camera.screen_to_world(pos)
            cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
            if(cell == self.final_cell_id and self.path):
-              cell_id =  self.path.pop(0)
-              #if cell 0 is origin we take the next
-              camera = State.camera
-              wx, wy = camera.target.position
-              cell_avatar = self.world.index_at(wx,wy)
-              if(cell_id == cell_avatar and self.path): 
-                   cell_id =  self.path.pop(0) 
-              ##
-              print('to cell id: ',cell_id)
-              pos = self.world.get_cell_pos(cell_id)
-           
-              self.move_to = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
-              self.new_x = self.move_to[0] + self.cell_size/2
-              self.new_y = self.move_to[1] + self.cell_size/2
-              #step calculation
-              o_col,o_row = self.world.get_cell_grid(cell_avatar)
-              d_col,d_row = self.world.get_cell_grid(cell_id)
-              
-              if(o_row -d_row > 0):
-                 row = -1
-              elif(o_row - d_row < 0):
-                 row = 1
-              else:
-                 row = 0
-              if(o_col - d_col > 0):
-                 col = -1
-              elif(o_col - d_col < 0):
-                 col=1
-              else:
-                 col = 0  
-              self.step = Vec2d( row,col)
-              print(self.step)
-             
+              self.getStepFromPath()
+              #print(self.step)
               
            #else, new path
            else:
@@ -275,12 +253,19 @@ class gameEngine(Engine):
             #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
             stepx, stepy = self.step
+            #pay attention, if we are in a mouse movement we take next step
             # Check if camx has arrived at the move_to point. If it has set stepx to 0.
             if camx == self.move_to[0]:
                 stepx = 0
             # Check if camy has arrived at the move_to point. If it has set stepy to 0.
             if camy == self.move_to[1]:
                 stepy = 0
+            #if arrived
+            if(camx == self.move_to[0] and camy == self.move_to[1]):
+            #if it was only one step of the whole path, we take the next 
+               if(self.final_cell_id and self.path):
+                  self.getStepFromPath() 
+                  stepx, stepy = self.step
             #checking map edges
             rect = State.world.rect
             if self.move_to[0] < rect.left:
@@ -471,10 +456,17 @@ class gameEngine(Engine):
         self.avatar_group.add(self.avatar)
         
     def on_mouse_button_down(self, pos, button):
-        self.mouse_down = True
+       if(button == 1): 
+          self.mouse_down = True
+          self.interface.erasehpopup()
+       else:
+          self.mouse_down2 = True
         
     def on_mouse_button_up(self, pos, button):
-        self.mouse_down = False
+        if(button == 1):
+           self.mouse_down = False
+        else:
+           self.mouse_down2 = False
         
     def on_key_down(self, unicode, key, mod):
         # Turn on key-presses.
@@ -494,6 +486,7 @@ class gameEngine(Engine):
             State.show_world = not State.show_world
         if key == K_ESCAPE:
             context.pop()
+        self.interface.erasehpopup()
 
         
     def on_key_up(self, key, mod):
@@ -508,6 +501,55 @@ class gameEngine(Engine):
         
     def on_quit(self):
         context.pop()
-        
+#####INTERFACE
+    def popup(self,pos):
+       rect = State.world.rect
+       world_pos = State.camera.screen_to_world(pos)
+       cell_position = self.world.index_at(world_pos[0],world_pos[1])
+       
+       #on avatar click?
+       wx,wy = State.camera.target.position
+       cell_avatar = self.world.index_at(wx,wy)
+       if(cell_avatar == cell_position): #show avatar popup!
+           popup_pos = pos[0],pos[1]
+           self.interface.createhpopup(State.screen,popup_pos,self.avatar)
+       else:
+           self.interface.erasehpopup()
+
+#####UTILS
+    '''it returns self.move_to and self.step from path'''
+    def getStepFromPath(self):
+        cell_id =  self.path.pop(0)
+        #if cell 0 is origin we take the next
+        camera = State.camera
+        wx, wy = camera.target.position
+        cell_avatar = self.world.index_at(wx,wy)
+        if(cell_id == cell_avatar and self.path): 
+            cell_id =  self.path.pop(0) 
+        ##
+        #DEBUG 
+        #print('to cell id: ',cell_id)
+        pos = self.world.get_cell_pos(cell_id)
+           
+        self.move_to = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
+        self.new_x = self.move_to[0] + self.cell_size/2
+        self.new_y = self.move_to[1] + self.cell_size/2
+        #step calculation
+        o_col,o_row = self.world.get_cell_grid(cell_avatar)
+        d_col,d_row = self.world.get_cell_grid(cell_id)
+              
+        if(o_row -d_row > 0):
+            row = -1
+        elif(o_row - d_row < 0):
+            row = 1
+        else:
+            row = 0
+        if(o_col - d_col > 0):
+            col = -1
+        elif(o_col - d_col < 0):
+            col=1
+        else:
+            col = 0  
+        self.step = Vec2d( row,col)        
     # App.on_quit
 

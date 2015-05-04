@@ -46,7 +46,8 @@ RIGHT = 'right'
 WALKRATE = 4
 RUNRATE = 12
 
-
+#attributes = {'faction' :None,'portrait':None,'attack':None,'deffense':None,'magic_p':None,'magic_k':None}
+katrin =  {'faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
 
 class ourHero(object):
 
@@ -92,6 +93,10 @@ class ourHero(object):
    self.y = screen_pos[1]
    self.screen_position = screen_pos
    self.position = map_pos
+
+   #game attributes
+   self.team = 0
+   self.attr = 0
 
  def getpoints(self):
     r = self.rect

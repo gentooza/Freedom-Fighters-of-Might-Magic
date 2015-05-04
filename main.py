@@ -89,7 +89,8 @@ class app:
 
 
 #INTILIALIZATION
-resolution = (1014,965)
+#old 1014,965
+resolution = (1024,768)
 strCaption = 'FFMM v0.0.4 ALPHA'
 tile_size=(30, 30) 
 map_size=(100, 100)

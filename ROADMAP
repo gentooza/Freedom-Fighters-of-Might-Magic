@@ -1,14 +1,15 @@
 V0.0.4 ALPHA
 ---------------------
 - obstacles in map
-- basic mouse movement with no obstacles detection and pathfinding
++ basic mouse movement with no obstacles detection and pathfinding
   + bugfix: click over avatar gives error
-  - steps on the middle of cell
+  = steps on the middle of cell
   + arrow sprites changed to dots
   + diagonal movement!
   + some kind of A algorith pathfinding implemented
-- a new creature on map
-- difference between left mouse click and right, right over avatar gives basic popup
-- clean code a bit
++ difference between left mouse click and right, right over avatar gives basic popup
++ hero statistics
+- basic class faction
+= clean code a bit
 
 

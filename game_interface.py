@@ -41,26 +41,34 @@ class gameInterface(object):
 
       #loading images
       self.menubar =  utils.load_png("gui/menubar_.png")
-      self.minimap = utils.load_png("gui/minimap.png")
+      #self.minimap = utils.load_png("gui/minimap.png")
       self.sidebar = utils.load_png("gui/sidebar_.png")
+
+      #hero popup
+      self.hpopup = utils.load_png("gui/heropopup.png")
+      self.shownhpoup = False 
  
       #position, not positioned yet
       self.menubar_rect = self.menubar.get_rect()
-      self.minimap_rect = self.minimap.get_rect()
+      #self.minimap_rect = self.minimap.get_rect()
       self.sidebar_rect = self.sidebar.get_rect()
       #setting rectangles
-      self.menubar_rect = pygame.Rect(0, 0, 833, 27)
+      self.menubar_rect = pygame.Rect(2, 0, 833, 27)
       self.minimap_rect = pygame.Rect(833, 0, 181, 265)
       self.minimap_map_rect = pygame.Rect(850, 8, 152, 205)
-      self.sidebar_rect = pygame.Rect(833, 265, 181, 700)
+      self.sidebar_rect = pygame.Rect(837, 0, 181, 700)
       #creating mini screens from state screen, method obtained from example 10_minimap.py of gummlib2
       self.menubar_screen = View(screen.surface, self.menubar_rect)
-      self.minimap_screen = View(screen.surface, self.minimap_rect)
+      #self.minimap_screen = View(screen.surface, self.minimap_rect)
       self.sidebar_screen = View(screen.surface, self.sidebar_rect)
-
+      self.hpopup_screen = None
       #minimap
       self.minimap_map = Minimap( self.minimap_map_rect)
 
+      #hero popup
+      self.name_font = pygame.font.SysFont('verdana',16)
+      self.name_font.set_bold(True)
+      self.atributes_font = pygame.font.SysFont('verdana',14)
     #def update(self, dt):
 
 
@@ -73,21 +81,89 @@ class gameInterface(object):
    def draw(self,screen,items):
        #clearing
        self.menubar_screen.clear()
-       self.minimap_screen.clear()
+       #self.minimap_screen.clear()
        self.sidebar_screen.clear()
        #drawing
        pygame.draw.rect(screen.surface,(99, 99, 99), self.menubar_rect, 1)
-       pygame.draw.rect(screen.surface,(99, 99, 99), self.minimap_rect, 1)
+       #pygame.draw.rect(screen.surface,(99, 99, 99), self.minimap_rect, 1)
        pygame.draw.rect(screen.surface,(99, 99, 99), self.sidebar_rect, 1)
        #blitting panels
        self.menubar_screen.surface.blit(self.menubar,(0,0))
-       self.minimap_screen.surface.blit(self.minimap,(0,0))
+       #self.minimap_screen.surface.blit(self.minimap,(0,0))
        self.sidebar_screen.surface.blit(self.sidebar,(0,0))
        #screen.blit(self.menubar,(0,0))
        #screen.blit(self.minimap,(833,0))
        #screen.blit(self.sidebar,(833,265))
        #print("drawing panels!")
        self.minimap_map.draw(items)
+       #do we draw the hero popup?? 
+       if(self.shownhpoup):
+           if(self.hpopup_screen):
+              self.hpopup_screen.clear()
+              self.himage_screen.clear()
+           pygame.draw.rect(screen.surface,(99, 99, 99), self.hpopup_rect, 1)
+           self.hpopup_screen.surface.blit(self.hpopup,(0,0))
+           pygame.draw.rect(screen.surface,(99, 99, 99), self.himage_rect, 1)
+           self.himage_screen.surface.blit(self.himage,(0,0))
+           #pygame.draw.rect(screen.surface,(0, 0, 0), self.hname_rect, 0)
+           self.hname_screen.surface.blit(self.hname,(0,0))
+           self.hattack_screen.surface.blit(self.hattack,(0,0))
+           self.hdef_screen.surface.blit(self.hdef,(0,0))
+           self.hpower_screen.surface.blit(self.hpower,(0,0))
+           self.hknow_screen.surface.blit(self.hknow,(0,0))
+   def createhpopup(self,screen,pos,hero):
+       self.shownhpoup = True
+       if (self.hpopup_screen):
+          self.hpopup_screen.clear()
+
+       self.hpopup_x = pos[0]
+       self.hpopup_y = pos[1]
+       self.hpopup_rect = pygame.Rect(self.hpopup_x,self.hpopup_y, 181, 68)
+       pygame.draw.rect(screen.surface,(99, 99, 99), self.hpopup_rect, 1)
+       self.hpopup_screen = View(screen.surface, self.hpopup_rect)
+       self.hpopup_screen.surface.blit(self.hpopup,(0,0))
+
+       #content & hero attributes!
+       attributes = hero.attr
+       ##portrait
+       image =  utils.load_png("portraits/" + attributes['portrait']+'.png')
+       self.himage = utils.load_png('portraits/no_portrait.png')
+       self.himage = pygame.transform.scale(image,(66,66))
+       self.himage_rect = pygame.Rect(self.hpopup_x+6,self.hpopup_y+1, 66, 66)
+       pygame.draw.rect(self.hpopup_screen.surface,(99, 99, 99), self.himage_rect, 1)
+       self.himage_screen = View(screen.surface, self.himage_rect)
+       self.himage_screen.surface.blit(self.himage,(0,0))
+       ##Name
+       self.hname = self.name_font.render(attributes['name'],True,(230,230,230))
+       self.hname_rect = pygame.Rect(self.hpopup_x+80,self.hpopup_y+1, 90, 20)
+       self.hname_screen = View(screen.surface, self.hname_rect)
+       self.hname_screen.surface.blit(self.hname,(0,0))
+       ##attributes
+       self.hattack = self.atributes_font.render("A: " + str(attributes['attack']),True,(220,220,220))
+       self.hattack_rect = pygame.Rect(self.hpopup_x+85,self.hpopup_y+22, 40, 15)
+       self.hattack_screen = View(screen.surface, self.hattack_rect)
+       self.hattack_screen.surface.blit(self.hattack,(0,0))
+
+       self.hdef = self.atributes_font.render("D: " + str(attributes['deffense']),True,(220,220,220))
+       self.hdef_rect = pygame.Rect(self.hpopup_x+125,self.hpopup_y+22, 40, 15)
+       self.hdef_screen = View(screen.surface, self.hdef_rect)
+       self.hdef_screen.surface.blit(self.hdef,(0,0))
+
+       self.hpower = self.atributes_font.render("P: " + str(attributes['magic_p']),True,(220,220,220))
+       self.hpower_rect = pygame.Rect(self.hpopup_x+85,self.hpopup_y+40, 40, 15)
+       self.hpower_screen = View(screen.surface, self.hpower_rect)
+       self.hpower_screen.surface.blit(self.hpower,(0,0))
+
+       self.hknow = self.atributes_font.render("K: " + str(attributes['magic_k']),True,(220,220,220))
+       self.hknow_rect = pygame.Rect(self.hpopup_x+125,self.hpopup_y+40, 40, 15)
+       self.hknow_screen = View(screen.surface, self.hknow_rect)
+       self.hknow_screen.surface.blit(self.hknow,(0,0))
+
+   def erasehpopup(self):
+       self.shownhpoup = False
+       if(self.hpopup_screen):  
+          self.hpopup_screen.clear()
+          self.himage_screen.clear() 
 
 class Minimap(object):
     
