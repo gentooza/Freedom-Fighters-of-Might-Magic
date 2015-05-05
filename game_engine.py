@@ -35,8 +35,11 @@ import objects
 import game_interface
 import ffmm_spatialhash
 import path_finding
+import game_dynamics
 
 katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
+sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
+heroes = {'katrin':katrin,'sandro':sandro}
 
 class gameEngine(Engine):
     
@@ -44,16 +47,23 @@ class gameEngine(Engine):
         #setting resolution
         resolution = Vec2d(resolution)
         #creating instance of our avatar in screen
-        self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
-        self.avatar.team = 1
-        self.avatar.attr = katrin
+        #self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
+        #self.avatar.team = 1
+        #self.avatar.attr = katrin
 
         #self.map is our map created with tile editor
+        #we load all information from map
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
         #heores layer of the map edited with Tiled
         self.avatar_group = worldmap.layers[2]
         self.terrain_layer = worldmap.layers[0]
         self.collision_layer = worldmap.layers[1]
+        self.objects_layer = worldmap.layers[3]
+
+        self.factions = game_dynamics.factions(self.objects_layer)
+
+        self.actual_team = self.factions.team.pop(0)
+        self.avatar = self.actual_team.heroes.pop(0)
 
         #for element in  self.terrain_layer.objects:
         #   print(element.properties)
@@ -69,8 +79,15 @@ class gameEngine(Engine):
         # Conserve CPU.
         State.clock.use_wait = True
 
-        ## Insert avatar into the Fringe layer.
+        ## Insert avatars into the Fringe layer.
         self.avatar_group.add(self.avatar)
+        #others avatars ina ctual team
+        for avatars in self.actual_team.heroes:
+           self.avatar_group.add(avatars)
+        #others avatars in others teams
+        for teams in self.factions.team:
+           for avatars in teams.heroes:
+              self.avatar_group.add(avatars)
 
         ## The renderer.
         self.renderer = BasicMapRenderer(
