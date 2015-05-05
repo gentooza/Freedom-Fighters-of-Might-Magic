@@ -1,3 +1,17 @@
+V0.0.4 ALPHA 2015/05/05
+---------------------
++ obstacles in map
++ basic mouse movement with no obstacles detection and pathfinding
+  + bugfix: click over avatar gives error
+  = steps on the middle of cell
+  + arrow sprites changed to dots
+  + diagonal movement!
+  + some kind of A algorith pathfinding implemented
++ difference between left mouse click and right, right over avatar gives basic popup
++ hero statistics
++ basic class faction
+= clean code a bit
++ bugfix 'IndexError: list index out of range' when going to map edges right and bottom
 
 V0.0.3 ALPHA 2015/04/29
 ---------------------

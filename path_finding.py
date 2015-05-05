@@ -41,7 +41,7 @@ class cell(object):
 
 terrain_costs = {1 : 1.2 , 2 : 1}
 
-def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer):
+def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer,collision_layer):
 
    y,x =  world.get_cell_pos(orig_cell.id)
    collide_rect = Rect(x-10,y-10,80,80)
@@ -53,23 +53,33 @@ def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer):
       cell_tmp = cell(element,orig_cell)
       col,row = world.get_cell_grid(element)
       o_col,o_row = world.get_cell_grid(orig_cell.id)
-
-      if(col != o_col or row != o_row): #we don't want to add the origin
+      if((col != o_col or row != o_row) and (row < terrain_layer.layer.width and col < terrain_layer.layer.height)): #neither we don't want to add the origin nor seek outside the map layers
          #fixed cost
-         cell_tmp.G = terrain_layer.layer.content2D[row][col]
+         cell_tmp.G = terrain_costs[terrain_layer.layer.content2D[row][col]]
+         
          if(cell_tmp.G!=0): #if it's walkable      
             #heuristic cost
             o_col,o_row = world.get_cell_grid(orig_cell.id)
-            d_col,d_row = world.get_cell_grid(dest_cell.id)    
-            cell_tmp.H = (abs(d_row-row)+abs(d_col-col))*10 + cell_tmp.G
-            adjacents.add(cell_tmp)
+            d_col,d_row = world.get_cell_grid(dest_cell.id)
+            #we don't want discrimine diagonals, they are kind, good people, and the most important, they have no more cost movement
+            row_difference = d_row-row
+            if(abs(row_difference) == 1):
+               row_difference = 0.1
+            col_difference = d_col-col
+            if(abs(col_difference) == 1):
+               col_difference = 0.1
+            ####
+            cell_tmp.H = (abs(row_difference)+abs(col_difference))*2
+            #if there is no collision
+            if(collision_layer.layer.content2D[row][col] == 0):
+               adjacents.add(cell_tmp)
             #print('added in heuristics the cell id: ',cell_tmp.id)
          #col,row = world.get_cell_grid(element)
          #print(row,col,cell_tmp.G,cell_tmp.H)
    #print("end adj")
    return adjacents
 
-def a_algorithm(orig_cell,final_cell,world,terrain_layer):
+def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer):
    #A* method
    path = []
    closedList = set()
@@ -88,20 +98,22 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer):
    #adding adjacent cells
    openList.add(current)
    while len(openList) is not 0:
-       print('from origen id: ',orig_cell.id,'   To destination id: ',final_cell.id)
-       current = min(openList, key=lambda inst:inst.H)
-       print('iteracion!!, elemento: ',current.id,current.H)
+       #print('elements in openlist:')
+       #for element in openList:
+       #   print('element id: ',element.id, ' ,element H+G: ',element.H+element.G)
+       current = min(openList, key=lambda inst:inst.H+inst.G)       
+       #print('the minor is: ',current.id,'  ,with H+G = ',current.H+current.G)
        if current.id == final_cell.id: #finished
           retracePath(current)
           return path
        openList.remove(current)
        closedList.add(current)
-       for tile in getting_adjacent(current,final_cell,world,terrain_layer):
-          print(tile.id,tile.H)
+       for tile in getting_adjacent(current,final_cell,world,terrain_layer,collision_layer):
+          #print(tile.id,tile.H)
           if tile not in closedList:            
-            print('not in closedlist')
+            #print('not in closedlist')
             if tile not in openList:
-               print('added to openlist')
+               #print('added to openlist')
                openList.add(tile)
             tile.parent = current
        #input("Press Enter to continue...")
@@ -110,7 +122,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer):
    
 
 
-def pos2steps(pos,world,terrain_layer):
+def pos2steps(pos,world,terrain_layer,collision_layer):
    """ get a path from a mouse pos"""
    #path
    path = []
@@ -121,6 +133,8 @@ def pos2steps(pos,world,terrain_layer):
    if(final_cell.id == None):
       return;
    col,row = world.get_cell_grid(final_cell.id)
+   if(collision_layer.layer.content2D[row][col] != 0):
+      return None,None
    #origin
    camera = State.camera
    wx, wy = camera.target.position
@@ -134,14 +148,15 @@ def pos2steps(pos,world,terrain_layer):
    idx= terrain_layer.layer.content2D[orig_row][orig_col]
    orig_cell.G = idx
    final_cell.G = terrain_layer.layer.content2D[row][col]
+   
    #print(orig_col,orig_row,idx)
    #print(terrain_costs[idx])
    #steps
    
-   path =  a_algorithm(orig_cell,final_cell,world,terrain_layer)
-   print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
-   for element in path:
-      print(element)
+   path =  a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer)
+   #print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
+   #for element in path:
+   #   print(element)
 
    return path,final_cell.id
 

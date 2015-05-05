@@ -150,7 +150,12 @@ class ourHero(object):
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
 
-
+'''faction class, with it's heroes, places, resources, etc.'''
+class faction(object):
+ def __init__(self, faction,color):
+   self.color = color
+   self.faction = faction
+  
 class arrow_step(object):
 
  def __init__(self,image,path,map_pos):

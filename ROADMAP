@@ -1,15 +1,13 @@
-V0.0.4 ALPHA
+V0.0.5 ALPHA
 ---------------------
-- obstacles in map
-+ basic mouse movement with no obstacles detection and pathfinding
-  + bugfix: click over avatar gives error
-  = steps on the middle of cell
-  + arrow sprites changed to dots
-  + diagonal movement!
-  + some kind of A algorith pathfinding implemented
-+ difference between left mouse click and right, right over avatar gives basic popup
-+ hero statistics
-- basic class faction
-= clean code a bit
-
+map:
+- starting positions for heroes
+- more textures for obstacles and terrains
+game:
+- several heores
+- turn pass with button
+- factions more developed
+- hero movement limit implemented
+- polish a bit the interface
+- start menu with configuration page, and more polished
 

@@ -51,9 +51,10 @@ class gameEngine(Engine):
         #self.map is our map created with tile editor
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
         #heores layer of the map edited with Tiled
-        self.avatar_group = worldmap.layers[1]
+        self.avatar_group = worldmap.layers[2]
         self.terrain_layer = worldmap.layers[0]
-        self.collision_layer = worldmap.layers[2]
+        self.collision_layer = worldmap.layers[1]
+
         #for element in  self.terrain_layer.objects:
         #   print(element.properties)
        
@@ -189,7 +190,7 @@ class gameEngine(Engine):
         ##
         #if we have no destination we prepare the path to the cell of coordinates given by mouse click!
         if (self.final_cell_id == None):
-           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer)
+           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer)
         #if we already have a destination
         else:
            world_pos = State.camera.screen_to_world(pos)
@@ -203,7 +204,7 @@ class gameEngine(Engine):
            #else, new path
            else:
               self.path.clear()
-              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer)
+              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer)
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
@@ -236,6 +237,11 @@ class gameEngine(Engine):
         else:
            cell_id = self.world.index(cell)
            self.new_x,self.new_y = self.world.get_cell_pos(cell_id)
+           #collisions
+           if(self.collision_layer.get_objects_in_rect(pygame.Rect(self.new_x,self.new_y,self.cell_size,self.cell_size))):
+              self.new_x = 0
+              self.new_y = 0
+              return; 
            row,col = self.world.get_cell_grid(cell_id)
            self.new_x += self.cell_size/2
            self.new_y += self.cell_size/2
@@ -425,7 +431,7 @@ class gameEngine(Engine):
     def draw_steps(self):
         self.arrows = None
         
-        if(self.path == []):
+        if(not self.path):
           return;
     
         camera = State.camera
