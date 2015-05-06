@@ -18,6 +18,7 @@
 
 import pygame, math, sys
 import pygbutton
+import utils
 
 from pygame.locals import *
 
@@ -31,22 +32,34 @@ BACKGROUND = (20,20,20)
 
 class main_menu:
     id=1
-    def __init__(self):
+    def __init__(self,parameters):
         self.clock = pygame.time.Clock()
+        #it depends of resolution
+        self.image_background = utils.load_png('gui/main_menu.png')
+        #it depends of resolution
+        self.main_title = utils.load_png('gui/title.png')
 
+        self.version_font = pygame.font.SysFont('verdana',12)
+        self.version_font.set_bold(True)
+        self.version = parameters['version']
+ 
     def setScreen(self,screen,FPS):
         self.screen = screen
         self.FPS = FPS
         
     def constructScene(self):
-        self.buttStartGame = pygbutton.PygButton((50, 50, 150, 30), 'Start New Game')
-        self.buttQuit = pygbutton.PygButton((50, 100, 150, 30), 'Quit to OS')
+       
+        self.buttStartGame = pygbutton.PygButton((820, 600, 150, 40), 'Start New Game')
+        self.buttConfiguration = pygbutton.PygButton((820, 650, 150, 40), 'Configuration')
+        self.buttQuit = pygbutton.PygButton((820, 700, 150, 40), 'Quit to OS')
         
-        self.objects = (self.buttStartGame,self.buttQuit);
+        self.objects = (self.buttStartGame,self.buttConfiguration,self.buttQuit);
         for b in self.objects:
             b.bgcolor = WHITE
             b.fgcolor = RED
-        
+
+        #set game version
+        self.version_str = self.version_font.render(self.version,True,(220,0,0))
         
     def run(self):
         while True:
@@ -60,9 +73,11 @@ class main_menu:
                     return 1
                 if 'click' in self.buttQuit.handleEvent(event):
                     return -1
-                
-            self.screen.fill(WHITE)
-
+            #background theme
+            self.screen.blit(self.image_background,(0,2))
+            self.screen.blit(self.main_title,(175,0))
+            self.screen.blit(self.version_str,(4,745))
+            #buttons
             for b in self.objects:
                 b.draw(self.screen)
 
