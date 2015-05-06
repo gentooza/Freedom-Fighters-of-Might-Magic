@@ -81,14 +81,17 @@ class gameEngine(Engine):
 
         ## Insert avatars into the Fringe layer.
         self.avatar_group.add(self.avatar)
-        #others avatars ina ctual team
+        #others avatars in actual team
         for avatars in self.actual_team.heroes:
            self.avatar_group.add(avatars)
         #others avatars in others teams
         for teams in self.factions.team:
            for avatars in teams.heroes:
               self.avatar_group.add(avatars)
-
+        ##################
+        #Game dynamics
+        self.endturn = False
+        ###################
         ## The renderer.
         self.renderer = BasicMapRenderer(
             worldmap, max_scroll_speed=State.speed)
@@ -141,6 +144,10 @@ class gameEngine(Engine):
         self.path = []
         self.mouse_reponse = 3
         self.iterator = 0
+        self.pathstep = None
+        self.lastpathstep = None 
+        self.cellstep = None
+        self.lastcellstep = None 
         #self.path = 'stop'
 
         #keyboard managment
@@ -150,6 +157,8 @@ class gameEngine(Engine):
         self.new_x = 0
         self.new_y = 0
         self.step = Vec2d(0,0)
+
+
         self.laststepx = 0
         self.laststepy = 0
         
@@ -172,6 +181,8 @@ class gameEngine(Engine):
 
     def update(self, dt):
         """overrides Engine.update"""
+        if self.endturn:
+           self.endturn_fun()
         # If mouse button is held down update for continuous walking.
         self.iterator+=1
         if self.iterator >= self.mouse_reponse:
@@ -214,13 +225,16 @@ class gameEngine(Engine):
            cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
-           if(cell == self.final_cell_id and self.path):
+           if(cell == self.final_cell_id and self.path and self.avatar.movement == 0):
               self.getStepFromPath()
               #print(self.step)
               
            #else, new path
            else:
+              self.interruptpath()
               self.path.clear()
+              self.lastpathstep = None
+              self.pathstep = None
               self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer)
 
     #keyboard movement between cells
@@ -230,7 +244,9 @@ class gameEngine(Engine):
             return
         # print('CALCULATING MOVE_TO')
         # end Gummchange
-      
+        #if we are moving, interrupt!
+        self.interruptpath()
+        ############################
         # Current position.
         camera = State.camera
         wx, wy = camera.target.position
@@ -268,6 +284,8 @@ class gameEngine(Engine):
            self.step = Vec2d(self.move_x, self.move_y)
            #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
         self.path.clear()
+        self.lastpathstep = None
+        self.pathstep = None
  
     def update_camera_position(self):
         # if move_to, then the camera needs to keep stepping towards the destination tile.
@@ -507,6 +525,8 @@ class gameEngine(Engine):
             self.move_x = -1 
         if key == K_TAB:
             State.show_world = not State.show_world
+        if key == K_SPACE:
+            self.endturn = True
         if key == K_ESCAPE:
             context.pop()
         self.interface.erasehpopup()
@@ -524,6 +544,58 @@ class gameEngine(Engine):
         
     def on_quit(self):
         context.pop()
+#####GAME DYNAMICS
+    def interruptpath(self):
+       if self.lastpathstep:
+          print(self.lastpathstep)
+          stepx,stepy = self.lastpathstep
+          self.move_to = None
+          #avatar animation
+          self.camera.position = stepx,stepy
+          self.avatar.stopMove(Vec2d(stepx,stepy))
+          
+
+    def endturn_fun(self):
+
+        print('endturn function!')
+        self.interruptpath()
+        self.avatar.stopMove(Vec2d(0,0))
+        #path saving
+        self.avatar.saved_path = self.path.copy()
+        ############
+        self.actual_team.heroes.append(self.avatar)     
+        self.factions.team.append(self.actual_team)
+       
+        self.actual_team = None
+        self.avatar = None
+
+        self.actual_team = self.factions.team.pop(0)
+        self.avatar = self.actual_team.heroes.pop(0)
+        
+        ## Insert avatars into the Fringe layer.
+        self.avatar_group.add(self.avatar)
+        #others avatars in actual team
+        for avatars in self.actual_team.heroes:
+           self.avatar_group.add(avatars)
+        #others avatars in others teams
+        for teams in self.factions.team:
+           for avatars in teams.heroes:
+              self.avatar_group.add(avatars)
+        #path saving an restoring
+        self.lastpathstep = self.pathstep = None
+        if self.avatar.saved_path:
+           self.path.clear()
+           self.path = self.avatar.saved_path.copy()
+           self.move_to = None
+           self.step = None
+
+        camx, camy = self.camera.position  
+        self.move_to = Vec2d(camx,camy)
+        self.step = Vec2d(0,0)
+        self.camera.target = self.avatar
+        self.endturn = False
+
+
 #####INTERFACE
     def popup(self,pos):
        rect = State.world.rect
@@ -542,7 +614,12 @@ class gameEngine(Engine):
 #####UTILS
     '''it returns self.move_to and self.step from path'''
     def getStepFromPath(self):
+        self.lastcellstep = self.cellstep
+        if(self.lastcellstep):
+           pos = self.world.get_cell_pos(self.lastcellstep)
+           self.laststeppath = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
         cell_id =  self.path.pop(0)
+        self.cellstep = cell_id
         #if cell 0 is origin we take the next
         camera = State.camera
         wx, wy = camera.target.position
@@ -555,8 +632,8 @@ class gameEngine(Engine):
         pos = self.world.get_cell_pos(cell_id)
            
         self.move_to = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
-        self.new_x = self.move_to[0] + self.cell_size/2
-        self.new_y = self.move_to[1] + self.cell_size/2
+        self.new_x = self.move_to[0]# + self.cell_size/2
+        self.new_y = self.move_to[1]# + self.cell_size/2
         #step calculation
         o_col,o_row = self.world.get_cell_grid(cell_avatar)
         d_col,d_row = self.world.get_cell_grid(cell_id)

@@ -97,6 +97,7 @@ class ourHero(object):
    #game attributes
    self.team = 0
    self.attr = 0
+   self.saved_path = None
 
  def getpoints(self):
     r = self.rect

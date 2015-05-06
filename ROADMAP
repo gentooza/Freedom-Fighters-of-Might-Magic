@@ -1,10 +1,10 @@
 V0.0.5 ALPHA
 ---------------------
 map:
-- starting positions for heroes
++ starting positions for heroes
 = more textures for obstacles and terrains
 game:
-- several heores
++ several heroes
 - turn pass with button
 - factions more developed: colours
 - hero movement limit implemented

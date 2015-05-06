@@ -54,10 +54,12 @@ class factions(object):
 '''faction class, with it's heroes, places, resources, etc.'''
 class team(object):
  def __init__(self, num, hero_name,coordinates):
+   #cell size
+   newcoordinates = (coordinates[0]+30,coordinates[1]+30)
    self.num = num
    self.color = num #color code by team number? 1 = red, etc.?
    self.heroes = []
-   hero = objects.ourHero("horseman","horseman",coordinates,(0, 0))
+   hero = objects.ourHero("horseman","horseman",newcoordinates,(0, 0))
    hero.team = num
    hero.attr = game_engine.heroes[hero_name]
    self.heroes.append(hero)
