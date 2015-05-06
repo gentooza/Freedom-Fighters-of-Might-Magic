@@ -74,7 +74,7 @@ class gameEngine(Engine):
         #engine initialization
         #   camera target: our avatar
         Engine.__init__(self, caption=strcaption,
-                        camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
+                        camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
 
         # Conserve CPU.
         State.clock.use_wait = True
@@ -198,6 +198,7 @@ class gameEngine(Engine):
         self.anim_avatar()
         State.hud.update(dt)
         #steps
+        
 
     def update_mouse_movement(self, pos):
         #checking map edges

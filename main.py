@@ -55,7 +55,7 @@ class app:
 
 
  def setDisplay(self):
-    self.screen =  pygame.display.set_mode(self.resolution)
+    self.screen =  pygame.display.set_mode(self.resolution,pygame.FULLSCREEN)
     self.caption = pygame.display.set_caption(self.strCaption)
     self.parameters['caption'] = self.caption
 
@@ -91,12 +91,8 @@ class app:
 #INTILIALIZATION
 #old 1014,965
 resolution = (1024,768)
-<<<<<<< HEAD
-strCaption = 'FFMM v0.0.5 ALPHA'
-=======
 version = '0.0.5 ALPHA'
 strCaption = 'FFMM ' + version
->>>>>>> ec07b6b263129242513a4ac9fced2ef4ffc31ce5
 tile_size=(30, 30) 
 map_size=(100, 100)
 minimap_pos = (600,100)
