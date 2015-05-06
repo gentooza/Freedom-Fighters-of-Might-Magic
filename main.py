@@ -60,7 +60,7 @@ class app:
     self.parameters['caption'] = self.caption
 
  def run(self):
-    scr_menu = main_menu.main_menu()
+    scr_menu = main_menu.main_menu(parameters)
     scr_menu.setScreen(self.screen,30)
     scr_menu.constructScene()
     ret = 0
@@ -91,15 +91,20 @@ class app:
 #INTILIALIZATION
 #old 1014,965
 resolution = (1024,768)
+<<<<<<< HEAD
 strCaption = 'FFMM v0.0.5 ALPHA'
+=======
+version = '0.0.5 ALPHA'
+strCaption = 'FFMM ' + version
+>>>>>>> ec07b6b263129242513a4ac9fced2ef4ffc31ce5
 tile_size=(30, 30) 
 map_size=(100, 100)
 minimap_pos = (600,100)
 minimap_size = (120,120)
-FPS = 40
+FPS = 50
 NULL = 'NULL'
 
-parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS}
+parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version}
 FFMM = app(parameters)
 
 #DISPLAY
