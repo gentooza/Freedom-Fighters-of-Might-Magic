@@ -19,7 +19,6 @@
 import pygame, math, sys
 import pygbutton
 import utils
-import config_menu
 
 from pygame.locals import *
 
@@ -31,7 +30,7 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 BACKGROUND = (20,20,20)
 
-class main_menu:
+class config_menu:
     id=1
     def __init__(self,parameters):
         self.clock = pygame.time.Clock()
@@ -40,11 +39,15 @@ class main_menu:
         #it depends of resolution
         self.main_title = utils.load_png('gui/title.png')
 
-        self.version_font = pygame.font.SysFont('verdana',12)
-        self.version_font.set_bold(True)
-        self.version = parameters['version']
-        self.parameters = parameters
-        self.screen = None
+        self.title_font = pygame.font.SysFont('verdana',22)
+        self.title_font.set_bold(True)
+        self.title = 'CONFIGURATION'
+ 
+        self.option_font = pygame.font.SysFont('verdana',16)
+        self.option_font.set_bold(True)
+        self.option_video = 'VIDEO OPTIONS:'  
+
+        self.parameters = parameters       
  
     def setScreen(self,screen,FPS):
         self.screen = screen
@@ -52,17 +55,16 @@ class main_menu:
         
     def constructScene(self):
        
-        self.buttStartGame = pygbutton.PygButton((820, 600, 150, 40), 'Start New Game')
-        self.buttConfiguration = pygbutton.PygButton((820, 650, 150, 40), 'Configuration')
-        self.buttQuit = pygbutton.PygButton((820, 700, 150, 40), 'Quit to OS')
+        self.toggleFull = pygbutton.PygButton((60, 380, 200, 40), 'TOGGLE FULLSCREEN')
+        self.buttQuit = pygbutton.PygButton((820, 700, 150, 40), 'OK')
         
-        self.objects = (self.buttStartGame,self.buttConfiguration,self.buttQuit);
+        self.objects = (self.toggleFull,self.buttQuit);
         for b in self.objects:
             b.bgcolor = WHITE
             b.fgcolor = RED
 
-        #set game version
-        self.version_str = self.version_font.render(self.version,True,(220,0,0))
+        self.title_str = self.title_font.render(self.title,True,(220,0,0))
+        self.option_str = self.option_font.render(self.option_video,True,(220,0,0))
         
     def run(self):
         while True:
@@ -71,19 +73,20 @@ class main_menu:
                 
                 #   pygame.quit()
                 #  sys.exit()
-                if 'click' in self.buttConfiguration.handleEvent(event):
-                    conf_menu = config_menu.config_menu(self.parameters)
-                    conf_menu.setScreen(self.screen,30)
-                    conf_menu.constructScene()
-                    conf_menu.run()
-                if 'click' in self.buttStartGame.handleEvent(event):
-                    return 1
+                if 'click' in self.toggleFull.handleEvent(event):
+                    if not self.parameters['fullscreen']:
+                       self.parameters['fullscreen'] = True
+                       pygame.display.toggle_fullscreen()
+                    else:
+                       self.parameters['fullscreen'] = False
+                       pygame.display.toggle_fullscreen()
                 if 'click' in self.buttQuit.handleEvent(event):
-                    return -1
+                    return 1
             #background theme
             self.screen.blit(self.image_background,(0,2))
             self.screen.blit(self.main_title,(175,0))
-            self.screen.blit(self.version_str,(4,745))
+            self.screen.blit(self.title_str,(10,300))
+            self.screen.blit(self.option_str,(30,350))
             #buttons
             for b in self.objects:
                 b.draw(self.screen)

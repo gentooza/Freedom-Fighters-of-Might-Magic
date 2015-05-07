@@ -51,9 +51,13 @@ heroes = {'katrin':katrin,'sandro':sandro}
 
 class gameEngine(Engine):
     
-    def __init__(self, resolution=(1014, 965),strcaption = "no caption"):
-        #setting resolution
-        resolution = Vec2d(resolution)
+    def __init__(self, parameters):
+        #setting parameters
+        resolution = Vec2d(parameters['resolution'])
+        if(parameters['fullscreen']):
+           flags = pygame.FULLSCREEN
+        else:
+           flags = 0
         #creating instance of our avatar in screen
         #self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
         #self.avatar.team = 1
@@ -72,7 +76,7 @@ class gameEngine(Engine):
 
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
-        self.avatar.remaining_movement = self.avatar.movement
+        self.avatar.remaining_movement = self.avatar.move_points
         #for element in  self.terrain_layer.objects:
         #   print(element.properties)
        
@@ -82,7 +86,7 @@ class gameEngine(Engine):
         #engine initialization
         #   camera target: our avatar
         #Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
-        Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
+        Engine.__init__(self, caption=parameters['strcaption'],camera_target= self.avatar,resolution=resolution, display_flags=flags,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
         # Conserve CPU.
         State.clock.use_wait = True
 
@@ -304,7 +308,7 @@ class gameEngine(Engine):
     def update_camera_position(self,G):
         move_G = G
         # if move_to, then the camera needs to keep stepping towards the destination tile.
-        if self.move_to and self.avatar.remaining_movement:
+        if self.move_to and self.avatar.remaining_movement and self.step:
             #print('STEP pos{} -> dest{} by step{}'.format(
             #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
@@ -652,15 +656,14 @@ class gameEngine(Engine):
         ############
         self.actual_team.heroes.append(self.avatar)     
         self.factions.team.append(self.actual_team)
-       
+
         self.actual_team = None
         self.avatar = None
-
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
         #refreshing avatar movement points
-        self.avatar.remaining_movement = self.avatar.movement
-        
+        self.avatar.remaining_movement = self.avatar.move_points
+ 
         ## Insert avatars into the Fringe layer.
         self.avatar_group.add(self.avatar)
         #others avatars in actual team

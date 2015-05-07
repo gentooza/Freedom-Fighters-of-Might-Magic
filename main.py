@@ -43,25 +43,21 @@ class app:
 
  def __init__(self,parameters):
     pygame.init();
-    if(parameters['resolution'] != 'NULL'):
-       self.resolution = parameters['resolution']
-    else:
-       self.resolution = (320,240)
-    if(parameters['strcaption'] != 'NULL'):
-       self.strCaption = parameters['strcaption']
-    else:
-       self.strCaption = 'Freedom Fighters of Might & Magic'
+    if(parameters['resolution'] == 'NULL'):
+       parameters['resolution'] = (1024,768)
+    if(parameters['strcaption'] == 'NULL'):
+       parameters['strcaption'] = 'Freedom Fighters of Might & Magic'
     self.parameters = parameters
 
 
  def setDisplay(self):
     #self.screen =  pygame.display.set_mode(self.resolution,pygame.FULLSCREEN)
-    self.screen =  pygame.display.set_mode(self.resolution)
-    self.caption = pygame.display.set_caption(self.strCaption)
+    self.screen =  pygame.display.set_mode(self.parameters['resolution'])
+    self.caption = pygame.display.set_caption(self.parameters['strcaption'])
     self.parameters['caption'] = self.caption
 
  def run(self):
-    scr_menu = main_menu.main_menu(parameters)
+    scr_menu = main_menu.main_menu(self.parameters)
     scr_menu.setScreen(self.screen,30)
     scr_menu.constructScene()
     ret = 0
@@ -69,11 +65,8 @@ class app:
        if(ret == 0):
           ret = scr_menu.run()
        if(ret == 1):
-          print("LET'S PLAY FMM!!")
-          #scr_game = game.gameScene(self.parameters)
-          #scr_game.constructScene()
-          scr_game = game_engine.gameEngine(self.resolution,self.strCaption)
-          #scr_game.setScreen(self.screen)
+          print("LET'S PLAY FMM!!")  
+          scr_game = game_engine.gameEngine(self.parameters)
           print('in game!!')
           gummworld2.run(scr_game)
           print('out of game!!')
@@ -101,7 +94,7 @@ minimap_size = (120,120)
 FPS = 50
 NULL = 'NULL'
 
-parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version}
+parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version , 'fullscreen' : False }
 FFMM = app(parameters)
 
 #DISPLAY

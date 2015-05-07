@@ -19,7 +19,6 @@
 import pygame, math, sys
 import pygbutton
 import utils
-import config_menu
 
 from pygame.locals import *
 
@@ -43,8 +42,6 @@ class main_menu:
         self.version_font = pygame.font.SysFont('verdana',12)
         self.version_font.set_bold(True)
         self.version = parameters['version']
-        self.parameters = parameters
-        self.screen = None
  
     def setScreen(self,screen,FPS):
         self.screen = screen
@@ -71,11 +68,7 @@ class main_menu:
                 
                 #   pygame.quit()
                 #  sys.exit()
-                if 'click' in self.buttConfiguration.handleEvent(event):
-                    conf_menu = config_menu.config_menu(self.parameters)
-                    conf_menu.setScreen(self.screen,30)
-                    conf_menu.constructScene()
-                    conf_menu.run()
+
                 if 'click' in self.buttStartGame.handleEvent(event):
                     return 1
                 if 'click' in self.buttQuit.handleEvent(event):

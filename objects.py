@@ -111,7 +111,7 @@ class ourHero(object):
    self.team = team_num
    self.attr = 0
    self.saved_path = None
-   self.movement = 10
+   self.move_points = 10
    self.remaining_movement = 0
    
  def getpoints(self):
