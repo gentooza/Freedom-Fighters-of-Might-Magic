@@ -5,9 +5,9 @@ map:
 = more textures for obstacles and terrains
 game:
 + several heroes
-- turn pass with button
++ turn pass with button
 + factions more developed: colours
 - hero movement limit implemented
-- polish a bit the interface
++ polish a bit the interface
 - start menu with configuration page, and more polished
 

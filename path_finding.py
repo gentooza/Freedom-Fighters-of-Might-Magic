@@ -90,7 +90,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer):
         #(x,y) = world.get_cell_pos(c.id)
         #cell size!
         #path.insert(0,(x+30,y+30))
-        path.insert(0,c.id)
+        path.insert(0,(c.id,c.G))
         if c.parent == None:
             return
         retracePath(c.parent)

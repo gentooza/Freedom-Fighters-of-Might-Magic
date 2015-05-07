@@ -36,6 +36,14 @@ import game_interface
 import ffmm_spatialhash
 import path_finding
 import game_dynamics
+import pygbutton
+
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
+BACKGROUND = (20,20,20)
 
 katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
 sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
@@ -64,7 +72,7 @@ class gameEngine(Engine):
 
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
-
+        self.avatar.remaining_movement = self.avatar.movement
         #for element in  self.terrain_layer.objects:
         #   print(element.properties)
        
@@ -174,25 +182,28 @@ class gameEngine(Engine):
      
         #game interface!
         self.interface = game_interface.gameInterface(State.screen)
+        #populating game interface
+        self.populating_interface()
     
     #def setScreen(self, screen):
     #    self.screen = screen
 
     def update(self, dt):
         """overrides Engine.update"""
+        G = 0
         if self.endturn:
            self.endturn_fun()
         # If mouse button is held down update for continuous walking.
         self.iterator+=1
         if self.iterator >= self.mouse_reponse:
            if self.mouse_down:
-               self.update_mouse_movement(pygame.mouse.get_pos())
+               G =self.update_mouse_movement(pygame.mouse.get_pos())
            self.iterator = 0
         if self.mouse_down2:
            self.popup(pygame.mouse.get_pos())
-        if self.key_down:
-            self.update_keyboard_movement()     
-        self.update_camera_position()
+        #if self.key_down:
+        #    self.update_keyboard_movement()     
+        self.update_camera_position(G)
         State.camera.update()
         self.anim_avatar()
         State.hud.update(dt)
@@ -200,6 +211,8 @@ class gameEngine(Engine):
         
 
     def update_mouse_movement(self, pos):
+        #movement cost
+        move_G = 0
         #checking map edges
         rect = State.world.rect
         world_pos = State.camera.screen_to_world(pos)
@@ -226,13 +239,17 @@ class gameEngine(Engine):
            #if clicked the same destination again
            #movement starts!!
            if(cell == self.final_cell_id and self.path):
-              self.getStepFromPath()
+              move_G,cell_id = self.getStepFromPath()
+              if self.avatar.remaining_movement < move_G:
+                 self.step = None
+                 self.retStepToPath(cell_id,move_G)
               #print(self.step)
               
            #else, new path
            else:
               self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer)
               self.interruptpath()
+        return move_G
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
@@ -284,9 +301,10 @@ class gameEngine(Engine):
         self.lastpathstep = None
         self.pathstep = None
  
-    def update_camera_position(self):
+    def update_camera_position(self,G):
+        move_G = G
         # if move_to, then the camera needs to keep stepping towards the destination tile.
-        if self.move_to:
+        if self.move_to and self.avatar.remaining_movement:
             #print('STEP pos{} -> dest{} by step{}'.format(
             #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
@@ -302,8 +320,12 @@ class gameEngine(Engine):
             if(camx == self.move_to[0] and camy == self.move_to[1]):
             #if it was only one step of the whole path, we take the next 
                if(self.final_cell_id and self.path):
-                  self.getStepFromPath() 
-                  stepx, stepy = self.step
+                  move_G,cell_id = self.getStepFromPath()
+                  if self.avatar.remaining_movement >= move_G:
+                     stepx, stepy = self.step
+                  else:
+                     stepx = stepy = 0
+                     self.retStepToPath(cell_id,move_G)
             #checking map edges
             rect = State.world.rect
             if self.move_to[0] < rect.left:
@@ -326,6 +348,7 @@ class gameEngine(Engine):
                 self.camera.position += stepx, stepy
                 #avatar animation
                 self.avatar.move(Vec2d(stepx,stepy))
+                self.avatar.remaining_movement -= move_G
             else:
                 #print("stop moving {},{}".format(int(self.laststepx),int(self.laststepy)))
                 self.move_to = None
@@ -431,10 +454,15 @@ class gameEngine(Engine):
            self.draw_debug()
         State.hud.draw()
         self.draw_steps()
-        self.interface.draw(State.screen,self.avatar_group)
+        self.draw_interface()
         State.screen.flip()
 
-
+    def draw_interface(self):
+       #buttons
+       #for b in self.objects:
+       #   b.draw(self.sidebar_screen)
+       self.interface.draw(State.screen,self.avatar_group)
+       self.buttEndTurn.draw(State.screen)
     def draw_renderer(self):
         """renderer draws map layers"""
         
@@ -469,11 +497,16 @@ class gameEngine(Engine):
           return;
     
         camera = State.camera
+        total_movement = self.avatar.remaining_movement
         for element in self.path:
-           y,x  = self.world.get_cell_pos(element)
+           y,x  = self.world.get_cell_pos(element[0])
            x += self.cell_size/2
            y += self.cell_size/2
-           arrow = objects.arrow_step("dot-white.png","misc",(x,y))
+           if(total_movement >= element[1]):
+              arrow = objects.arrow_step("dot-white.png","misc",(x,y))
+              total_movement -= element[1]
+           else:
+              arrow = objects.arrow_step("new-journey.png","misc",(x,y))
            camera.surface.blit(arrow.image, camera.world_to_screen(arrow.position))
 
     
@@ -500,18 +533,27 @@ class gameEngine(Engine):
         self.avatar.update()
         self.avatar_group.add(self.avatar)
         
-    def on_mouse_button_down(self, pos, button):
+    def on_mouse_button_down(self,event, pos, button):
        if(button == 1): 
-          self.mouse_down = True
-          self.interface.erasehpopup()
+          if 'click' in self.buttEndTurn.handleEvent(event):
+             return 
+          if(pos[0] <= 833 and pos[1] <= 741 and pos[1] >= 27): #to improve, if we are clicking on map
+             self.mouse_down = True
+             self.interface.erasehpopup()
+             #print(pos)
        else:
           self.mouse_down2 = True
         
-    def on_mouse_button_up(self, pos, button):
+    def on_mouse_button_up(self,event, pos, button):
         if(button == 1):
+           if 'click' in self.buttEndTurn.handleEvent(event):
+             self.endturn = True   
            self.mouse_down = False
         else:
            self.mouse_down2 = False
+
+    def on_mouse_motion(self,event, pos,rel, button):
+        return
         
     def on_key_down(self, unicode, key, mod):
         # Turn on key-presses.
@@ -548,6 +590,47 @@ class gameEngine(Engine):
         
     def on_quit(self):
         context.pop()
+    #we need to override original fucntion from parent class, to take also the event
+    def _get_events(self):
+        """Get events and call the handler. Called automatically by run() each
+        time the clock indicates an update cycle is ready.
+        """
+        for e in self._get_pygame_events():
+            typ = e.type
+            if typ == KEYDOWN:
+                #removed e.str python3 doesn't like it
+		#by gentooza 2015-04-14
+                self.on_key_down(e.unicode,e.key, e.mod)
+            elif typ == KEYUP:
+                self.on_key_up(e.key, e.mod)
+            elif typ == MOUSEMOTION:
+                self.on_mouse_motion(e,e.pos, e.rel, e.buttons)
+            elif typ == MOUSEBUTTONUP:
+                self.on_mouse_button_up(e,e.pos, e.button)
+            elif typ == MOUSEBUTTONDOWN:
+                self.on_mouse_button_down(e,e.pos, e.button)
+            elif typ == JOYAXISMOTION:
+                self.on_joy_axis_motion(e.joy, e.axis, e.value)
+            elif typ == JOYBALLMOTION:
+                self.on_joy_ball_motion(e.joy, e.ball, e.rel)
+            elif typ == JOYHATMOTION:
+                self.on_joy_hat_motion(e.joy, e.hat, e.value)
+            elif typ == JOYBUTTONUP:
+                self.on_joy_button_up(e.joy, e.button)
+            elif typ == JOYBUTTONDOWN:
+                self.on_joy_button_down(e.joy, e.button)
+            elif typ == VIDEORESIZE:
+                self.on_video_resize(e.size, e.w, e.h)
+            elif typ == VIDEOEXPOSE:
+                self.on_video_expose()
+            elif typ == USEREVENT:
+                    self.on_user_event(e)
+            elif typ == QUIT:
+                    self.on_quit()
+            elif typ == ACTIVEEVENT:
+                self.on_active_event(e.gain, e.state)
+
+
 #####GAME DYNAMICS
     def interruptpath(self):
        if self.lastpathstep:
@@ -561,7 +644,7 @@ class gameEngine(Engine):
 
     def endturn_fun(self):
 
-        print('endturn function!')
+        #print('endturn function!')
         self.interruptpath()
         self.avatar.stopMove(Vec2d(0,0))
         #path saving
@@ -575,6 +658,8 @@ class gameEngine(Engine):
 
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
+        #refreshing avatar movement points
+        self.avatar.remaining_movement = self.avatar.movement
         
         ## Insert avatars into the Fringe layer.
         self.avatar_group.add(self.avatar)
@@ -600,7 +685,19 @@ class gameEngine(Engine):
         self.endturn = False
 
 
+
 #####INTERFACE
+    def populating_interface(self):
+        #buttons position depends of game resolution
+        self.buttEndTurn  = pygbutton.PygButton((870, 720, 120, 30), 'End Turn')
+
+        #self.buttons = (self.buttEndTurn,..);
+        #for b in self.buttons:
+        #   b.bgcolor = WHITE
+        #   b.fgcolor = RED
+        self.buttEndTurn.bgcolor = WHITE
+        self.buttEndTurn.fgcolor = RED
+
     def popup(self,pos):
        rect = State.world.rect
        world_pos = State.camera.screen_to_world(pos)
@@ -622,14 +719,14 @@ class gameEngine(Engine):
         if(self.lastcellstep):
            pos = self.world.get_cell_pos(self.lastcellstep)
            self.laststeppath = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
-        cell_id =  self.path.pop(0)
+        cell_id,cell_G =  self.path.pop(0)
         self.cellstep = cell_id
         #if cell 0 is origin we take the next
         camera = State.camera
         wx, wy = camera.target.position
         cell_avatar = self.world.index_at(wx,wy)
         if(cell_id == cell_avatar and self.path): 
-            cell_id =  self.path.pop(0) 
+            cell_id,cell_G =  self.path.pop(0) 
         ##
         #DEBUG 
         #print('to cell id: ',cell_id)
@@ -654,6 +751,11 @@ class gameEngine(Engine):
             col=1
         else:
             col = 0  
-        self.step = Vec2d( row,col)        
+        self.step = Vec2d( row,col)
+        return cell_G,cell_id    
+    '''it returns a step to path'''
+    def retStepToPath(self,cell_id,cell_G):
+        self.path.insert(0,(cell_id,cell_G)) 
+      
     # App.on_quit
 

@@ -93,7 +93,7 @@ class ourHero(object):
    self.image = pygame.Surface((72,72))
    self.image.set_colorkey(0)
 
-   self.image.blit(self.flag,(0,0))
+   self.image.blit(self.flag,(2,-10))
    self.image.blit(self.hero_image,(-5,-5))
 
    #move conductor
@@ -111,6 +111,8 @@ class ourHero(object):
    self.team = team_num
    self.attr = 0
    self.saved_path = None
+   self.movement = 10
+   self.remaining_movement = 0
    
  def getpoints(self):
     r = self.rect
@@ -166,10 +168,10 @@ class ourHero(object):
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
    self.flag = self.animFlags.getCurrentFrame()
-   print('animating flag')
+   #print('animating flag')
    self.image = pygame.Surface((72,72))
    self.image.set_colorkey(0)
-   self.image.blit(self.flag,(0,0))
+   self.image.blit(self.flag,(2,-10))
    self.image.blit(self.hero_image,(-5,-5))
 
    #self.flag =utils.load_png('flags/red-1.png')# self.animFlags.getCurrentFrame()

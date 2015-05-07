@@ -35,14 +35,16 @@ import objects
 import ffmm_spatialhash
 import utils
 
+
 class gameInterface(object):
     
    def __init__(self, screen):
 
       #loading images
-      self.menubar =  utils.load_png("gui/menubar_.png")
+      self.menubar =  utils.load_png("gui/menubar.png")
       #self.minimap = utils.load_png("gui/minimap.png")
-      self.sidebar = utils.load_png("gui/sidebar_.png")
+      self.sidebar = utils.load_png("gui/sidebar.png")
+      self.sidebar_bott = utils.load_png("gui/sidebar_top.png")
 
       #hero popup
       self.hpopup = utils.load_png("gui/heropopup.png")
@@ -55,8 +57,8 @@ class gameInterface(object):
       #setting rectangles
       self.menubar_rect = pygame.Rect(2, 0, 833, 27)
       self.minimap_rect = pygame.Rect(833, 0, 181, 265)
-      self.minimap_map_rect = pygame.Rect(850, 8, 152, 205)
-      self.sidebar_rect = pygame.Rect(837, 0, 181, 700)
+      self.minimap_map_rect = pygame.Rect(850, 10, 152, 205)
+      self.sidebar_rect = pygame.Rect(837, 0, 181, 768)
       #creating mini screens from state screen, method obtained from example 10_minimap.py of gummlib2
       self.menubar_screen = View(screen.surface, self.menubar_rect)
       #self.minimap_screen = View(screen.surface, self.minimap_rect)
@@ -69,6 +71,7 @@ class gameInterface(object):
       self.name_font = pygame.font.SysFont('verdana',16)
       self.name_font.set_bold(True)
       self.atributes_font = pygame.font.SysFont('verdana',14)
+     
     #def update(self, dt):
 
 
@@ -91,6 +94,7 @@ class gameInterface(object):
        self.menubar_screen.surface.blit(self.menubar,(0,0))
        #self.minimap_screen.surface.blit(self.minimap,(0,0))
        self.sidebar_screen.surface.blit(self.sidebar,(0,0))
+       self.sidebar_screen.surface.blit(self.sidebar_bott,(0,700))
        #screen.blit(self.menubar,(0,0))
        #screen.blit(self.minimap,(833,0))
        #screen.blit(self.sidebar,(833,265))
@@ -111,6 +115,7 @@ class gameInterface(object):
            self.hdef_screen.surface.blit(self.hdef,(0,0))
            self.hpower_screen.surface.blit(self.hpower,(0,0))
            self.hknow_screen.surface.blit(self.hknow,(0,0))
+
    def createhpopup(self,screen,pos,hero):
        self.shownhpoup = True
        if (self.hpopup_screen):
