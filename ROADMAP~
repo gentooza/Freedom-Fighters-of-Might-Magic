@@ -1,13 +1,11 @@
-V0.0.5 ALPHA
+V0.0.6 ALPHA
 ---------------------
 map:
-+ starting positions for heroes
-= more textures for obstacles and terrains
+- starting position for creature
+- more textures for obstacles and terrains
 game:
-+ several heroes
-+ turn pass with button
-+ factions more developed: colours
-+ hero movement limit implemented
-+ polish a bit the interface
-+ start menu with configuration page, and more polished
+- start works for world map AI
+- work in bugfixes and stability
+- start working in hero army
+- start designing the battle screen
 
