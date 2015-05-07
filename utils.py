@@ -30,18 +30,30 @@ except ImportError as err:
 
 
 def load_png(name):
-	""" Load image and return image object"""
-	fullname = os.path.join('data', name)
-	try:
-		image = pygame.image.load(fullname)
-		if image.get_alpha() is None:
-			image = image.convert()
-		else:
-			image = image.convert_alpha()
-	except pygame.error as message:
-        	print('Cannot load image:', fullname)
-        	raise SystemExit(message)
-	return image
+   """ Load image and return image object"""
+   fullname = os.path.join('data', name)
+   try:
+      image = pygame.image.load(fullname)
+      if image.get_alpha() is None:
+         image = image.convert()
+      else:
+         image = image.convert_alpha()
+   except pygame.error as message:
+      print('Cannot load image:', fullname)
+      raise SystemExit(message)
+   return image
+
+def load_flag(num):
+   if(num == 1): #red
+      image =  load_png('flags/red-1.png')
+      colour = 'red'
+   elif(num == 2): #green
+      image =  load_png('flags/green-1.png')
+      colour = 'green' 
+   else: #red?
+      image =  load_png('flags/red-1.png')
+      colour = 'red'
+   return image,colour              
 
 
 

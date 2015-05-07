@@ -55,7 +55,8 @@ class app:
 
 
  def setDisplay(self):
-    self.screen =  pygame.display.set_mode(self.resolution,pygame.FULLSCREEN)
+    #self.screen =  pygame.display.set_mode(self.resolution,pygame.FULLSCREEN)
+    self.screen =  pygame.display.set_mode(self.resolution)
     self.caption = pygame.display.set_caption(self.strCaption)
     self.parameters['caption'] = self.caption
 

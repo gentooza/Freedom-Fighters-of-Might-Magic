@@ -51,7 +51,7 @@ katrin =  {'faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'mag
 
 class ourHero(object):
 
- def __init__(self,image,path,map_pos, screen_pos):
+ def __init__(self,image,path,map_pos, screen_pos,team_num):
    self._position = Vec2d(0,0) # x e y? funciones de gummworld2
    self.movement = 0
    #self.direction = DOWN
@@ -60,17 +60,23 @@ class ourHero(object):
    front_image = path + '/' + image + '-se-bob1.png'
    self.front_standing = utils.load_png(front_image)
    self.right_standing = utils.load_png(front_image)
+   #team flag
+   self.flag,flag_colour = utils.load_flag(team_num)
+   
    #self.rect = self.front_standing.get_rect()
 
    self.back_standing = pygame.transform.flip(self.front_standing, True, False) 
    self.left_standing = pygame.transform.flip(self.right_standing, True, False) 
    self.playerWidth, self.playerHeight = self.front_standing.get_size()
 
-   #animation loading
+   ##animation loading
    self.animTypes = '-se-run -n-run -s-run -sw-run'
    self.animObjs = {}
    self.imagesAndDurations = [('data/horseman/horseman-se-run%s.png' % (str(num)), 0.1) for num in range(1,8)]
    self.animObjs['-se-run'] = pyganim.PygAnimation(self.imagesAndDurations)
+   #flag
+   self.flagsID = [("data/flags/%s-%s.png" % (flag_colour,str(num)), 0.1) for num in range(1,4)] 
+   self.animFlags  = pyganim.PygAnimation(self.flagsID)
 
    # create the right-facing sprites by copying and flipping the left-facing sprites
    self.animObjs['-n-run'] = self.animObjs['-se-run'].getCopy()
@@ -82,11 +88,18 @@ class ourHero(object):
    self.animObjs['-sw-run'].makeTransformsPermanent()
 
    #self.image = self.animObjs['-se-run'].getCurrentFrame()
-   self.image = self.image_stand = self.front_standing
-   self.rect = self.image.get_rect()
+   self.hero_image = self.image_stand = self.front_standing
+   self.rect = self.hero_image.get_rect()
+   self.image = pygame.Surface((72,72))
+   self.image.set_colorkey(0)
+
+   self.image.blit(self.flag,(0,0))
+   self.image.blit(self.hero_image,(-5,-5))
 
    #move conductor
    self.moveConductor = pyganim.PygConductor(self.animObjs)
+   self.moveFlags = pyganim.PygConductor(self.animFlags)
+   self.moveFlags.play()
    #start direction
    #self.direction = DOWN
    self.x = screen_pos[0]
@@ -95,10 +108,10 @@ class ourHero(object):
    self.position = map_pos
 
    #game attributes
-   self.team = 0
+   self.team = team_num
    self.attr = 0
    self.saved_path = None
-
+   
  def getpoints(self):
     r = self.rect
     return r.topleft, r.topright, r.bottomright, r.bottomleft
@@ -120,11 +133,13 @@ class ourHero(object):
 
  def move(self,direction):
    self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
+   self.moveFlags.play()
    self.dir = direction
    self.movement = 1
 
  def stopMove(self,direction):
    self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
+   self.moveFlags.play()
    self.dir = direction
    self.movement = 0
 		 
@@ -138,20 +153,26 @@ class ourHero(object):
       #self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
       if self.dir.x > 0:
          #self.animObjs['-n-run'].blit(screen, (self.x, self.y))
-         self.image = self.animObjs['-se-run'].getCurrentFrame()
+         self.hero_image = self.animObjs['-se-run'].getCurrentFrame()
          self.image_stand = self.right_standing
       else:
          #self.animObjs['-s-run'].blit(screen, (self.x, self.y))
-         self.image = self.animObjs['-sw-run'].getCurrentFrame()
+         self.hero_image = self.animObjs['-sw-run'].getCurrentFrame()
          self.image_stand = self.left_standing
    else:
-         self.image = self.image_stand
+         self.hero_image = self.image_stand
          #screen.blit(self.image, (self.x, self.y))
  
    self.rect = self.image.get_rect()
    self.rect.center=self.x, self.y
+   self.flag = self.animFlags.getCurrentFrame()
+   print('animating flag')
+   self.image = pygame.Surface((72,72))
+   self.image.set_colorkey(0)
+   self.image.blit(self.flag,(0,0))
+   self.image.blit(self.hero_image,(-5,-5))
 
-
+   #self.flag =utils.load_png('flags/red-1.png')# self.animFlags.getCurrentFrame()
   
 class arrow_step(object):
 

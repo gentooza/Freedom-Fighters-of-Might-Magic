@@ -59,8 +59,7 @@ class team(object):
    self.num = num
    self.color = num #color code by team number? 1 = red, etc.?
    self.heroes = []
-   hero = objects.ourHero("horseman","horseman",newcoordinates,(0, 0))
-   hero.team = num
+   hero = objects.ourHero("horseman","horseman",newcoordinates,(0, 0),num)
    hero.attr = game_engine.heroes[hero_name]
    self.heroes.append(hero)
 

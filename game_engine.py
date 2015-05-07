@@ -73,9 +73,8 @@ class gameEngine(Engine):
 
         #engine initialization
         #   camera target: our avatar
-        Engine.__init__(self, caption=strcaption,
-                        camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
-
+        #Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
+        Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
         # Conserve CPU.
         State.clock.use_wait = True
 
@@ -139,7 +138,7 @@ class gameEngine(Engine):
         self.mouse_down = False #left click
         self.mouse_down2 = False  #right click
         self.side_steps = []
-        self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0))
+        self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0),0)
         self.final_cell_id = None
         self.path = []
         self.mouse_reponse = 3
@@ -226,17 +225,14 @@ class gameEngine(Engine):
            cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
-           if(cell == self.final_cell_id and self.path and self.avatar.movement == 0):
+           if(cell == self.final_cell_id and self.path):
               self.getStepFromPath()
               #print(self.step)
               
            #else, new path
            else:
-              self.interruptpath()
-              self.path.clear()
-              self.lastpathstep = None
-              self.pathstep = None
               self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer)
+              self.interruptpath()
 
     #keyboard movement between cells
     def update_keyboard_movement(self):
@@ -450,10 +446,12 @@ class gameEngine(Engine):
         camera_rect = camera.rect
         dirty_rect = self.dirty_rect
         camera_center = camera_rect.center
-        if camera.target.rect.center != camera_center:
-            dirty_rect.center = camera_center
-            renderer.set_dirty(dirty_rect)
-            panning = True
+        #changed this to have the renderer refreshing all the camera surface ALWAYS
+        # TO HAVE animated objects always
+        #set dirty to refresh all objects in camera rectangle
+        dirty_rect.center = camera_center
+        renderer.set_dirty(camera_rect)
+        panning = True
         
         # Set render's rect and draw the screen.
         renderer.set_rect(center=camera_center)
@@ -493,7 +491,12 @@ class gameEngine(Engine):
         #self.avatar.update()
         #camera = State.camera
         #avatar = camera.target
-        #camera.surface.blit(avatar.image, camera.world_to_screen(avatar.position))
+        #others avatars in others teams
+        for teams in self.factions.team:
+           for avatars in teams.heroes:
+              avatars.update()
+              self.avatar_group.add(avatars)
+
         self.avatar.update()
         self.avatar_group.add(self.avatar)
         
