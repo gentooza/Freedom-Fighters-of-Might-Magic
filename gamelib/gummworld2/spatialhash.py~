@@ -125,8 +125,7 @@ class SpatialHash(object):
         self.remove(obj)
         buckets = self.buckets
         for idx in cell_ids:
-            #gentooza, added self. 
-            self.buckets[idx].append(obj)
+            buckets[idx].append(obj)
         self.cell_ids[obj] = cell_ids
         return cell_ids == True
     

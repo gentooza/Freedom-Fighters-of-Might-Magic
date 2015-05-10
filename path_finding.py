@@ -41,12 +41,13 @@ class cell(object):
 
 terrain_costs = {1 : 1.2 , 2 : 1}
 
-def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer,collision_layer):
+def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer,collision_layer,avatars_layer):
 
    y,x =  world.get_cell_pos(orig_cell.id)
    collide_rect = Rect(x-10,y-10,80,80)
    adjacents = set()
 
+   objects = avatars_layer.get_objects_in_rect(collide_rect)
    cells = world.intersect_indices(collide_rect)
    #print("adjacents!")
    for element in cells:
@@ -72,14 +73,16 @@ def  getting_adjacent(orig_cell,dest_cell, world,terrain_layer,collision_layer):
             cell_tmp.H = (abs(row_difference)+abs(col_difference))*2
             #if there is no collision
             if(collision_layer.layer.content2D[row][col] == 0):
+            #and if 
                adjacents.add(cell_tmp)
+
             #print('added in heuristics the cell id: ',cell_tmp.id)
          #col,row = world.get_cell_grid(element)
          #print(row,col,cell_tmp.G,cell_tmp.H)
    #print("end adj")
    return adjacents
 
-def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer):
+def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer,avatars_layer):
    #A* method
    path = []
    closedList = set()
@@ -108,7 +111,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer):
           return path
        openList.remove(current)
        closedList.add(current)
-       for tile in getting_adjacent(current,final_cell,world,terrain_layer,collision_layer):
+       for tile in getting_adjacent(current,final_cell,world,terrain_layer,collision_layer, avatars_layer):
           #print(tile.id,tile.H)
           if tile not in closedList:            
             #print('not in closedlist')
@@ -122,7 +125,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer):
    
 
 
-def pos2steps(pos,world,terrain_layer,collision_layer):
+def pos2steps(pos,world,terrain_layer,collision_layer, avatars_layer):
    """ get a path from a mouse pos"""
    #path
    path = []
@@ -153,11 +156,13 @@ def pos2steps(pos,world,terrain_layer,collision_layer):
    #print(terrain_costs[idx])
    #steps
    
-   path =  a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer)
+   path =  a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer, avatars_layer)
    #print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
    #for element in path:
    #   print(element)
-
+    
+   #what if we erase the first step, the origin?
+   #################################path.pop(0)
    return path,final_cell.id
 
 

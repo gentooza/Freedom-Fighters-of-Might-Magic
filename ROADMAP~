@@ -6,6 +6,13 @@ map:
 game:
 - start works for world map AI
 - work in bugfixes and stability
+- work in cleaning code
 - start working in hero army
 - start designing the battle screen
+sound and music:
+- music for screens
+- sound of horse
+- sound of background in world map
+- music of background in world map
+- volume in configuration
 
