@@ -161,7 +161,10 @@ class gameEngine(Engine):
         self.cellstep = None
         self.lastcellstep = None
         self.lastcellG = 0
-        self.cellG = 0
+        self.cellG = 0 
+        #new movement philosophy v0.0.6
+        self.next_move_to = None
+        self.next_path = None
 
 
         #keyboard managment
@@ -234,7 +237,7 @@ class gameEngine(Engine):
            return;
 
         # Final destination reset.
-        self.move_to = None
+        ###self.move_to = None
         ##
         #1 case:if we have no destination we prepare the path to the cell of coordinates given by mouse click!
         if (self.final_cell_id == None):
@@ -270,20 +273,19 @@ class gameEngine(Engine):
               
            #else, new path
            else:
-              if not self.laststeppath:
-                 
-                 wx, wy = State.camera.target.position
-                 cell_id = self.world.index_at(wx,wy)
-                 x,y =self.world.get_cell_pos(cell_id)
-                 State.camera.target.position = y+self.cell_size/2,x+self.cell_size/2
-                 self.avatar.remaining_movement += self.lastcellG
-                 print('to cell origin')
+              if(self.move_to):
+                 if not self.laststeppath:
+                    wx, wy = State.camera.target.position
+                    cell_id = self.world.index_at(wx,wy)
+                    x,y =self.world.get_cell_pos(cell_id)
+                    State.camera.target.position = y+self.cell_size/2,x+self.cell_size/2
+                    self.avatar.remaining_movement += self.lastcellG
+                 else:
+                    State.camera.target.position = self.laststeppath[],self.laststeppath[0]
+                    self.lastcellG = 0
+                 self.path,self.move_to = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
               else:
-                 State.camera.target.position = self.laststeppath[0],self.laststeppath[1]
-                 self.lastcellG = 0
-                 print('to last path')
-     
-              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
+                 self.new_path,self.new_move_to = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         return move_G
 
     #keyboard movement between cells
@@ -358,7 +360,6 @@ class gameEngine(Engine):
                    move_G,cell_id = self.getStepFromPath()
                    print('moving to: ',self.move_to[0],self.move_to[1])
                    self.last_cell_visited = cell_id
-                   print(self.avatar.remaining_movement)
                    if self.avatar.remaining_movement >= move_G:
                        stepx, stepy = self.step
                        print('moving')
@@ -397,7 +398,11 @@ class gameEngine(Engine):
                 #avatar animation
                 self.avatar.stopMove(Vec2d(self.laststepx,self.laststepy))
                 self.laststepx = self.laststepy = 0
-                
+        
+        elif self.next_move_to:
+            self.move_to = self.next_move_to
+            self.path = self.next_path
+            self.next_move_to = self.next_path = None        
        
         
 #LEGACY    def update_camera_position(self):
