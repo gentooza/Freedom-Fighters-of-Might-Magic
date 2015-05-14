@@ -246,7 +246,7 @@ class gameEngine(Engine):
            cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
-           if(cell == self.final_cell_id and self.path):
+           if(cell == self.final_cell_id and self.path and not self.avatar.movement):
               move_G,cell_id = self.getStepFromPath()
               if self.avatar.remaining_movement < move_G:
                  self.retStepToPath(cell_id,move_G)
@@ -267,7 +267,8 @@ class gameEngine(Engine):
                  else:
                     self.lastcellG = 0                  
                  State.camera.target.position = newx,newy
-              
+
+                 
            #else, new path
            else:
               if not self.laststeppath:
@@ -276,13 +277,14 @@ class gameEngine(Engine):
                  cell_id = self.world.index_at(wx,wy)
                  x,y =self.world.get_cell_pos(cell_id)
                  State.camera.target.position = y+self.cell_size/2,x+self.cell_size/2
+                 self.avatar.stopMove(Vec2d( y+self.cell_size/2,x+self.cell_size/2))
                  self.avatar.remaining_movement += self.lastcellG
                  print('to cell origin')
               else:
                  State.camera.target.position = self.laststeppath[0],self.laststeppath[1]
                  self.lastcellG = 0
                  print('to last path')
-     
+                 self.avatar.stopMove(Vec2d(self.laststeppath[0],self.laststeppath[1]))
               self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         return move_G
 
@@ -389,6 +391,7 @@ class gameEngine(Engine):
                 self.laststepy = stepy
                 self.camera.position += stepx, stepy
                 #avatar animation
+                print('avatar animation!')
                 self.avatar.move(Vec2d(stepx,stepy))
                 self.avatar.remaining_movement -= move_G
             else:
