@@ -49,12 +49,14 @@
   <object id="1" gid="7" x="480" y="180">
    <properties>
     <property name="heroe" value="katrin"/>
+    <property name="player" value="computer"/>
     <property name="team" value="2"/>
    </properties>
   </object>
   <object id="7" gid="7" x="420" y="540">
    <properties>
     <property name="heroe" value="sandro"/>
+    <property name="player" value="human"/>
     <property name="team" value="1"/>
    </properties>
   </object>

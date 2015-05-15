@@ -198,13 +198,19 @@ class gameEngine(Engine):
     def update(self, dt):
         """overrides Engine.update"""
         G = 0
-        if self.endturn:
-           self.endturn_fun()
+        if self.actual_team.player == 'human':
+           if self.endturn:
+              self.endturn_fun()
+        else:
+           if self.actual_team.end_turn:
+              self.actual_team.end_turn = 0
+              self.endturn_fun()
         # If mouse button is held down update for continuous walking.
         self.iterator+=1
         if self.iterator >= self.mouse_reponse:
            if self.mouse_down:
-               G =self.update_mouse_movement(pygame.mouse.get_pos())
+               if self.actual_team.player == 'human':
+                  G =self.update_mouse_movement(pygame.mouse.get_pos())
                self.iterator = 0
         if self.mouse_down2:
            self.popup(pygame.mouse.get_pos())

@@ -38,6 +38,7 @@ except ImportError as err:
 
 import objects
 import game_engine
+import ai
 
 class factions(object):
  def __init__(self,objects_layer):
@@ -46,14 +47,18 @@ class factions(object):
     for element in objects_layer:
        faction_num = int(element.properties['team'])
        faction_hero = element.properties['heroe']
+       player = element.properties['player']
+       #simple error parameter input check
+       if(player != 'computer' and player != 'human'):
+          player = 'computer'
        x,y = element.rect.x,element.rect.y
-       self.team.append(team(faction_num,faction_hero,(x,y)))
+       self.team.append(team(faction_num,faction_hero,(x,y),player))
 
 
 
 '''faction class, with it's heroes, places, resources, etc.'''
 class team(object):
- def __init__(self, num, hero_name,coordinates):
+ def __init__(self, num, hero_name,coordinates,player):
    #cell size
    newcoordinates = (coordinates[0]+30,coordinates[1]+30)
    self.num = num
@@ -62,7 +67,14 @@ class team(object):
    hero = objects.ourHero("horseman","horseman",newcoordinates,(0, 0),num)
    hero.attr = game_engine.heroes[hero_name]
    self.heroes.append(hero)
+   self.player = player
+   #computer team?
+   if player != 'human':
+      self.AI = ai.computerPlayer(None)
+   self.end_turn = 0
 
+ def playturn(self):
+    self.AI.playturn()
 
 	
 
