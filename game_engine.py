@@ -37,6 +37,7 @@ import ffmm_spatialhash
 import path_finding
 import game_dynamics
 import pygbutton
+import sounds
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -51,7 +52,10 @@ heroes = {'katrin':katrin,'sandro':sandro}
 
 class gameEngine(Engine):
     
-    def __init__(self, parameters):
+    def __init__(self, parameters,gameSounds):
+        #playing sounds
+        self.gameSounds = gameSounds
+        self.gameSounds.playworld(True,0.6)
         #setting parameters
         resolution = Vec2d(parameters['resolution'])
         if(parameters['fullscreen']):
@@ -202,6 +206,7 @@ class gameEngine(Engine):
            if self.endturn:
               self.endturn_fun()
         else:
+           print('computer turn!')
            if self.actual_team.end_turn:
               self.actual_team.end_turn = 0
               self.endturn_fun()
@@ -399,6 +404,7 @@ class gameEngine(Engine):
                 #avatar animation
                 print('avatar animation!')
                 self.avatar.move(Vec2d(stepx,stepy))
+                self.gameSounds.playsound('move')
                 self.avatar.remaining_movement -= move_G
             else:
                 #print("stop moving {},{}".format(int(self.laststepx),int(self.laststepy)))
@@ -625,6 +631,7 @@ class gameEngine(Engine):
         if key == K_SPACE:
             self.endturn = True
         if key == K_ESCAPE:
+            self.gameSounds.playworld(False,0.6)
             context.pop()
         self.interface.erasehpopup()
 
@@ -690,6 +697,7 @@ class gameEngine(Engine):
         self.lastcellstep = None
         self.lastcellG = 0
         self.cellG = 0
+        self.final_cell_id = None
 
     def endturn_fun(self):
 
@@ -697,6 +705,7 @@ class gameEngine(Engine):
         #path saving
         self.cleanMovement()
         self.avatar.saved_path = self.path.copy()
+
         ############
         self.actual_team.heroes.append(self.avatar)     
         self.factions.team.append(self.actual_team)

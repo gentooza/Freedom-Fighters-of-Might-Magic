@@ -18,30 +18,33 @@
 
 
 try:
-	import sys
-	import random
-	import math
-	import os
-	import getopt
-	import pygame
-	import main_menu
-	import game_engine
-	import utils
-#	import objects
-	import paths
-	import gummworld2
-	from gummworld2 import Engine, State, BasicMap, SubPixelSurface, View, Vec2d
-	from gummworld2 import context, model, spatialhash, toolkit
+   import sys
+   import random
+   import math
+   import os
+   import getopt
+   import pygame
+   import main_menu
+   import game_engine
+   import utils
+   import sounds
+   import paths
+   import gummworld2
+   from gummworld2 import Engine, State, BasicMap, SubPixelSurface, View, Vec2d
+   from gummworld2 import context, model, spatialhash, toolkit
 
-	from socket import *
-	from pygame.locals import *
+   from socket import *
+   from pygame.locals import *
 except ImportError as err:
-	print("couldn't load module. %s" % (err))
-	sys.exit(2)
+   print("couldn't load module. %s" % (err))
+   sys.exit(2)
 
 class app:
 
  def __init__(self,parameters):
+    #sound
+    self.gameSounds = sounds.gameSound()
+    self.gameSounds.loadTracks()
     pygame.init();
     if(parameters['resolution'] == 'NULL'):
        parameters['resolution'] = (1024,768)
@@ -57,6 +60,7 @@ class app:
     self.parameters['caption'] = self.caption
 
  def run(self):
+    self.gameSounds.playmenu(True,1.0)
     scr_menu = main_menu.main_menu(self.parameters)
     scr_menu.setScreen(self.screen,30)
     scr_menu.constructScene()
@@ -65,14 +69,17 @@ class app:
        if(ret == 0):
           ret = scr_menu.run()
        if(ret == 1):
+          self.gameSounds.playmenu(False,1.0)
           print("LET'S PLAY FMM!!")  
-          scr_game = game_engine.gameEngine(self.parameters)
+          scr_game = game_engine.gameEngine(self.parameters,self.gameSounds)
           print('in game!!')
           gummworld2.run(scr_game)
           print('out of game!!')
           ret = 0
+          self.gameSounds.playmenu(True,1.0)
 
        else:
+          self.gameSounds.playmenu(False,1.0)
           print("EXITING FMM!!")
           pygame.quit()
           sys.exit()		
@@ -95,7 +102,9 @@ FPS = 50
 NULL = 'NULL'
 
 parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version , 'fullscreen' : False }
+
 FFMM = app(parameters)
+
 
 #DISPLAY
 FFMM.setDisplay()

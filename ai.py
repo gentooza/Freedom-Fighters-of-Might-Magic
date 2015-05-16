@@ -45,10 +45,10 @@ and the combat AI
 
 class computerPlayer:
    def __init__(self,aiparameters):
-
+      return
 
    def playturn(self):
-      return;
+      return
    #function to know if we can reach a place in world
    def wisReacheable(self):
-      return;
+      return
