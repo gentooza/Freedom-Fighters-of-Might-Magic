@@ -72,9 +72,27 @@ class team(object):
    if player != 'human':
       self.AI = ai.computerPlayer(None)
    self.end_turn = 0
-
- def playturn(self):
-    self.AI.playturn()
+   
+ def move_hero(self,computer_hero,world,avatar_layer,terrain_layer,collision_layer,objects_layer):
+    print('computer hero:')
+    print(computer_hero)
+    print('computer hero position:')
+    print(computer_hero.position)
+    print('computer hero team:')
+    print(computer_hero.team)
+    move_x = move_y = 0
+    for hero in avatar_layer:
+        if(hero != computer_hero):
+            print('other hero:')
+            print(hero)
+            print('other hero position:')
+            print(hero.position)
+            print('other hero team:')
+            print(hero.team)
+            move_x,move_y = self.AI.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
+    if(computer_hero.remaining_movement <= 1):
+        self.end_turn = True
+    return move_x,move_y
 
 	
 

@@ -32,17 +32,19 @@ __author__ = 'Gummbum, (c) 2011-2014'
 import os
 import sys
 
-# Unbuffered IO for Python 2.6, 2.7, and 3.x
+
+
+# Unbuffered IO for Python 2.6, 2.7 , 3.X
 buf_arg = 0
 if sys.version_info[0] == 3:
     buf_arg = 1
     os.environ['PYTHONUNBUFFERED'] = '1'
-sys.stdout.flush()
-sys.stderr.flush()
-#edited by gentopoza 2015-04-14
-#'a' parameter to 'w' for python3 compatibility
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buf_arg)
-sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buf_arg)
+else:
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'a', buf_arg)
+    sys.stderr = os.fdopen(sys.stderr.fileno(), 'a', buf_arg)
 
 del os, sys
 

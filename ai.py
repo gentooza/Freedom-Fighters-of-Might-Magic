@@ -36,6 +36,7 @@ except ImportError as err:
   print("couldn't load module. %s" % (err))
   sys.exit(2)
 
+import path_finding
 '''computer AI'''
 '''we have the AI for the world map
 the economics AI
@@ -45,10 +46,32 @@ and the combat AI
 
 class computerPlayer:
    def __init__(self,aiparameters):
+      self.safeRatius = 10
+      self.attackRatius = 14
+      self.path = None
       return
-
-   def playturn(self):
-      return
-   #function to know if we can reach a place in world
-   def wisReacheable(self):
-      return
+      
+   '''to move hero we needs our situation
+   the enemy situation, his strength, our strength'''
+   def flee_attack(self,hero,enemy_hero,world,terrain_layer,collision_layer,avatar_layer):
+      
+      self.path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
+      print('distance:')
+      print(len(self.path))
+      if len(self.path) <= self.attackRatius and hero.strength > enemy_hero.strength:
+          #attack
+          print('attack!')
+          move_x = 0
+          move_y = 0
+      elif len(self.path) <= self.safeRatius and hero.strength < enemy_hero.strength:
+          #flee
+          print('flee')
+          move_x = 0
+          move_y = 0
+      else:
+          #idle
+          print('idle')
+          move_x = random.randint(-1, 1)
+          move_y = random.randint(-1, 1)
+      return move_x,move_y
+      

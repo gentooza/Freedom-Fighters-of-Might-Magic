@@ -55,5 +55,5 @@ def load_flag(num):
       colour = 'red'
    return image,colour              
 
-
-
+def set_path_to(dista,distb):
+    return

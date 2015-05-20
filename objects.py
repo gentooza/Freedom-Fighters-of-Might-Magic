@@ -113,6 +113,7 @@ class ourHero(object):
    self.saved_path = None
    self.move_points = 10
    self.remaining_movement = 0
+   self.strength = 1
    
  def getpoints(self):
     r = self.rect

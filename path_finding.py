@@ -125,7 +125,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer,avatars
    
 
 
-def pos2steps(pos,world,terrain_layer,collision_layer, avatars_layer):
+def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    """ get a path from a mouse pos"""
    #path
    path = []
@@ -139,9 +139,7 @@ def pos2steps(pos,world,terrain_layer,collision_layer, avatars_layer):
    if(collision_layer.layer.content2D[row][col] != 0):
       return None,None
    #origin
-   camera = State.camera
-   wx, wy = camera.target.position
-   orig_cell = cell(world.index_at(wx,wy),None)
+   orig_cell = cell(world.index_at(orig_pos[0],orig_pos[1]),None)
 
    #if destination is the same as origin, then, no path and return
    if(orig_cell.id == final_cell.id):

@@ -50,6 +50,8 @@ katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'
 sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
 heroes = {'katrin':katrin,'sandro':sandro}
 
+terrain_costs = {1 : 1.2 , 2 : 1}
+
 class gameEngine(Engine):
     
     def __init__(self, parameters,gameSounds):
@@ -175,6 +177,9 @@ class gameEngine(Engine):
         self.new_x = 0
         self.new_y = 0
         self.step = Vec2d(0,0)
+        
+        #computer movement
+        self.pc_mov_cost = 0
 
 
         self.laststepx = 0
@@ -206,8 +211,8 @@ class gameEngine(Engine):
            if self.endturn:
               self.endturn_fun()
         else:
-           print('computer turn!')
-           if self.actual_team.end_turn:
+           #print('computer turn!')
+           if self.actual_team.end_turn and not self.avatar.movement:
               self.actual_team.end_turn = 0
               self.endturn_fun()
         # If mouse button is held down update for continuous walking.
@@ -219,6 +224,13 @@ class gameEngine(Engine):
                self.iterator = 0
         if self.mouse_down2:
            self.popup(pygame.mouse.get_pos())
+        #computer movements
+        if self.actual_team.player != 'human':
+            if(not self.avatar.movement):
+                move_x,move_y = self.actual_team.move_hero(self.avatar,State.world,self.avatar_group,self.terrain_layer,self.collision_layer,self.objects_layer)
+                print(move_x,move_y)
+                self.update_computer_movement(move_x,move_y)
+         
         #if self.key_down:
         #    self.update_keyboard_movement()     
         self.update_camera_position(G)
@@ -249,7 +261,9 @@ class gameEngine(Engine):
         ##
         #1 case:if we have no destination we prepare the path to the cell of coordinates given by mouse click!
         if (self.final_cell_id == None):
-           self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
+           camera = State.camera
+           orig_pos = camera.target.position
+           self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         #2 if we already have a destination
         else:
            #in which cell are we clicking?
@@ -296,7 +310,9 @@ class gameEngine(Engine):
                  self.lastcellG = 0
                  print('to last path')
                  self.avatar.stopMove(Vec2d(self.laststeppath[0],self.laststeppath[1]))
-              self.path,self.final_cell_id = path_finding.pos2steps(pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
+              camera = State.camera
+              orig_pos = camera.target.position
+              self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         return move_G
 
     #keyboard movement between cells
@@ -338,7 +354,7 @@ class gameEngine(Engine):
               self.new_x = 0
               self.new_y = 0
               return; 
-           row,col = self.world.get_cell_grid(cell_id)
+           #row,col = self.world.get_cell_grid(cell_id)
            self.new_x += self.cell_size/2
            self.new_y += self.cell_size/2
                    
@@ -346,8 +362,61 @@ class gameEngine(Engine):
            self.move_to = Vec2d(self.new_x, self.new_y)
            self.step = Vec2d(self.move_x, self.move_y)
            #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+           
 
- 
+    #keyboard movement between cells
+    def update_computer_movement(self,move_x,move_y):
+        # Gummchange
+        if move_x == 0 and move_y == 0:
+            return
+        # print('CALCULATING MOVE_TO')
+        # end Gummchange
+        #if we are moving, interrupt!
+        ############################
+        # Current position.
+        camera = State.camera
+        wx, wy = camera.target.position
+        cell_id = self.world.index_at(wx,wy)
+        x,y =self.world.get_cell_pos(cell_id)
+        camera.target.position = y+self.cell_size/2,x+self.cell_size/2
+        row,col = self.world.get_cell_grid(cell_id)
+        #print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
+        #new situation of new cell
+        if(row == 0 and move_y < 0):
+           new_row = row
+        else:
+           new_row = row + move_y
+        if(col == 0 and move_x < 0):
+           new_col = col
+        else:
+           new_col = col + move_x
+        #does it exist?
+        cell = self.world.get_cell_by_grid(new_col,new_row)
+        if(cell == None):
+           #doesnt exist
+           return
+        else:
+           cell_id = self.world.index(cell)
+           self.new_x,self.new_y = self.world.get_cell_pos(cell_id)
+           #collisions
+           if(self.collision_layer.get_objects_in_rect(pygame.Rect(self.new_x,self.new_y,self.cell_size,self.cell_size))):
+              self.new_x = 0
+              self.new_y = 0
+              return;
+           self.new_x += self.cell_size/2
+           self.new_y += self.cell_size/2
+           #movement cost
+           row,col = self.world.get_cell_grid(cell_id)
+           self.pc_mov_cost = terrain_costs[self.terrain_layer.layer.content2D[row][col]]
+           #print(self.avatar.remaining_movement,self.pc_mov_cost)
+           self.avatar.remaining_movement -= self.pc_mov_cost
+           #print(self.avatar.remaining_movement)
+           
+           #gummchange
+           self.move_to = Vec2d(self.new_x, self.new_y)
+           self.step = Vec2d(move_x, move_y)
+           #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+
     def update_camera_position(self,G):
         move_G = G
         # if move_to, then the camera needs to keep stepping towards the destination tile.
@@ -355,7 +424,7 @@ class gameEngine(Engine):
             #print('STEP pos{} -> dest{} by step{}'.format(
             #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
-            print('current camera position: ',camx,camy)
+            #print('current camera position: ',camx,camy)
             stepx, stepy = self.step
             #pay attention, if we are in a mouse movement we take next step
             # Check if camx has arrived at the move_to point. If it has set stepx to 0.
@@ -385,15 +454,11 @@ class gameEngine(Engine):
             rect = State.world.rect
             if self.move_to[0] < rect.left:
                 stepx=0
-                stepy=0 
             elif self.move_to[0]  >= rect.right:
                 stepx=0
-                stepy=0 
             if self.move_to[1]  < rect.top:
-                stepx=0
                 stepy=0
             elif self.move_to[1]  >= rect.bottom:
-                stepx=0
                 stepy=0
             # If steps remain on the x or y axis, update the camera position. Else, the
             # camera/avatar is done moving, so set self.move_to = None.
@@ -402,7 +467,7 @@ class gameEngine(Engine):
                 self.laststepy = stepy
                 self.camera.position += stepx, stepy
                 #avatar animation
-                print('avatar animation!')
+                #print('avatar animation!')
                 self.avatar.move(Vec2d(stepx,stepy))
                 self.gameSounds.playsound('move')
                 self.avatar.remaining_movement -= move_G
@@ -412,6 +477,7 @@ class gameEngine(Engine):
                 #avatar animation
                 self.avatar.stopMove(Vec2d(self.laststepx,self.laststepy))
                 self.laststepx = self.laststepy = 0
+                self.pc_mov_cost = 0
                 
        
         
