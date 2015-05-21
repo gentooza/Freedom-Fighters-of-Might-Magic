@@ -49,29 +49,69 @@ class computerPlayer:
       self.safeRatius = 10
       self.attackRatius = 14
       self.path = None
+      self.objective = None
+      self.possible_objective = None
       return
       
+   '''function to rpepare path, after studying enemy heroes, local situation, mines, resources, etc.'''
+   '''v1 if enemy hero is weaker, attack, if is stronger flee, if is equal simply go idle over the map exploring'''
+   def prepare(self,computer_hero,world,avatar_layer,terrain_layer,collision_layer,objects_layer):
+       move_x = move_y = 0
+       for hero in avatar_layer:
+           if(hero != computer_hero):
+               if not self.objective:
+                   self.objective = hero
+               if not self.path:
+                   self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
+                   if not self.path:
+                       self.objective = None
+
    '''to move hero we needs our situation
    the enemy situation, his strength, our strength'''
    def flee_attack(self,hero,enemy_hero,world,terrain_layer,collision_layer,avatar_layer):
-      
-      self.path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
-      print('distance:')
-      print(len(self.path))
-      if len(self.path) <= self.attackRatius and hero.strength > enemy_hero.strength:
+       print('computer hero position:',hero.position,' human hero position:',enemy_hero.position)
+       path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
+       print('distance:')
+       print(len(path))
+       print('complete path:')
+       for element_id,element_G in path:
+           print('col and row (y,x):',world.get_cell_grid(element_id))
+       if len(path) <= self.attackRatius and hero.strength > enemy_hero.strength:
           #attack
           print('attack!')
-          move_x = 0
-          move_y = 0
-      elif len(self.path) <= self.safeRatius and hero.strength < enemy_hero.strength:
+          self.path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
+       elif len(path) <= self.safeRatius and hero.strength < enemy_hero.strength:
           #flee
           print('flee')
-          move_x = 0
-          move_y = 0
-      else:
+          if self.path:
+              self.path.clear()
+       else:
           #idle
           print('idle')
+          if self.path:             
+              self.path.clear()
+       return
+   def move(self,hero):
+       if self.path:
+          cell_id,cell_G =  self.path.pop(0)
+          wx, wy = hero.position
+          cell_avatar = State.world.index_at(wx,wy)
+          o_col,o_row = State.world.get_cell_grid(cell_avatar)
+          d_col,d_row = State.world.get_cell_grid(cell_id)
+          
+          print('computer origin:(',o_col,',',o_row,')')
+          print('computer destination:(',d_col ,',',d_row,')')
+          move_x = d_col-o_col
+          move_y = d_row-o_row
+       else:
           move_x = random.randint(-1, 1)
           move_y = random.randint(-1, 1)
-      return move_x,move_y
-      
+       return move_x,move_y
+       
+   def turnFinished(self,hero,world,avatar_layer,terrain_layer,collision_layer,objects_layer):
+       if not self.objective:
+           return True
+       elif hero.remaining_movement < 1:
+           return True
+       else:
+           return False

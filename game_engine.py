@@ -694,6 +694,7 @@ class gameEngine(Engine):
             self.move_x = -1 
         if key == K_TAB:
             State.show_world = not State.show_world
+            self.avatar.setStrength(self.avatar.strength+1)
         if key == K_SPACE:
             self.endturn = True
         if key == K_ESCAPE:
@@ -843,7 +844,7 @@ class gameEngine(Engine):
            self.laststeppath = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
         cell_id,cell_G =  self.path.pop(0)
         self.cellstep = cell_id
-        self.cellG = cell_id
+        self.cellG = cell_G
         #if cell 0 is origin we take the next
         camera = State.camera
         wx, wy = camera.target.position

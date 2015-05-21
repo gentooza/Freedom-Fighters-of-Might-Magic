@@ -174,7 +174,10 @@ class ourHero(object):
    self.image.set_colorkey(0)
    self.image.blit(self.flag,(2,-10))
    self.image.blit(self.hero_image,(-5,-5))
-
+   
+#game dynamics procedures
+ def setStrength(self,value):
+     self.strength = value
    #self.flag =utils.load_png('flags/red-1.png')# self.animFlags.getCurrentFrame()
   
 class arrow_step(object):
@@ -221,6 +224,9 @@ class arrow_step(object):
  def stopMove(self,direction):
    self.dir = direction
    self.movement = 0
+   
+
+     
 
 
 	

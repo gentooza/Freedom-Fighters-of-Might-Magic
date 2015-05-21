@@ -155,6 +155,9 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    #steps
    
    path =  a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer, avatars_layer)
+   #removing origin from path   
+   if path:
+       path.pop(0)
    #print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
    #for element in path:
    #   print(element)
