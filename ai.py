@@ -69,7 +69,17 @@ class computerPlayer:
    '''to move hero we needs our situation
    the enemy situation, his strength, our strength'''
    def flee_attack(self,hero,enemy_hero,world,terrain_layer,collision_layer,avatar_layer):
-       print('computer hero position:',hero.position,' human hero position:',enemy_hero.position)
+       #print('computer hero position:',hero.position,' human hero position:',enemy_hero.position)
+       x = hero.position[0]
+       y = hero.position[1]
+       cell = State.world.index_at(x,y)
+       row,col = State.world.get_cell_grid(cell)
+       print('computer hero position:',row,col)
+       x = enemy_hero.position[0]
+       y = enemy_hero.position[1]
+       cell = State.world.index_at(x,y)
+       row,col = State.world.get_cell_grid(cell)
+       print('human hero position:',row,col)   
        path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
        print('distance:')
        print(len(path))
@@ -96,11 +106,11 @@ class computerPlayer:
           cell_id,cell_G =  self.path.pop(0)
           wx, wy = hero.position
           cell_avatar = State.world.index_at(wx,wy)
-          o_col,o_row = State.world.get_cell_grid(cell_avatar)
-          d_col,d_row = State.world.get_cell_grid(cell_id)
+          o_row,o_col = State.world.get_cell_grid(cell_avatar)
+          d_row,d_col = State.world.get_cell_grid(cell_id)
           
-          print('computer origin:(',o_col,',',o_row,')')
-          print('computer destination:(',d_col ,',',d_row,')')
+          print('computer origin:(',o_row,',',o_col,')')
+          print('computer destination:(',d_row ,',',d_col,')')
           move_x = d_col-o_col
           move_y = d_row-o_row
        else:

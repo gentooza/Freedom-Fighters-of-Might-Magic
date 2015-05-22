@@ -207,6 +207,7 @@ class gameEngine(Engine):
     def update(self, dt):
         """overrides Engine.update"""
         G = 0
+        #endturn
         if self.actual_team.player == 'human':
            if self.endturn:
               self.endturn_fun()
@@ -215,28 +216,38 @@ class gameEngine(Engine):
            if self.actual_team.end_turn and not self.avatar.movement:
               self.actual_team.end_turn = 0
               self.endturn_fun()
+        ###
+        #mouse and movement
         # If mouse button is held down update for continuous walking.
         self.iterator+=1
-        if self.iterator >= self.mouse_reponse:
-           if self.mouse_down:
-               if self.actual_team.player == 'human':
-                  G =self.update_mouse_movement(pygame.mouse.get_pos())
-               self.iterator = 0
-        if self.mouse_down2:
-           self.popup(pygame.mouse.get_pos())
+        if self.actual_team.player == 'human':
+            if self.iterator >= self.mouse_reponse:
+                if self.mouse_down:
+                    G =self.update_mouse_movement(pygame.mouse.get_pos())
+                self.iterator = 0
+                if self.mouse_down2:
+                    self.popup(pygame.mouse.get_pos())
         #computer movements
-        if self.actual_team.player != 'human':
+        else:
             if(not self.avatar.movement):
                 move_x,move_y = self.actual_team.move_hero(self.avatar,State.world,self.avatar_group,self.terrain_layer,self.collision_layer,self.objects_layer)
                 print(move_x,move_y)
                 self.update_computer_movement(move_x,move_y)
-         
+            if self.mouse_down2:
+                self.popup(pygame.mouse.get_pos())
+        ####### 
         #if self.key_down:
         #    self.update_keyboard_movement()     
+        #update camera
         self.update_camera_position(G)
         State.camera.update()
+        ####
+        #animate actors
         self.anim_avatar()
+        ###
+        #hud
         State.hud.update(dt)
+        ###
         #steps
         
 
