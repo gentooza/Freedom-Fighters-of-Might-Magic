@@ -219,14 +219,12 @@ class gameEngine(Engine):
         ###
         #mouse and movement
         # If mouse button is held down update for continuous walking.
-        self.iterator+=1
         if self.actual_team.player == 'human':
-            if self.iterator >= self.mouse_reponse:
-                if self.mouse_down:
-                    G =self.update_mouse_movement(pygame.mouse.get_pos())
-                self.iterator = 0
-                if self.mouse_down2:
-                    self.popup(pygame.mouse.get_pos())
+            if self.mouse_down:
+                G =self.update_mouse_movement(pygame.mouse.get_pos())
+
+            if self.mouse_down2:
+                self.popup(pygame.mouse.get_pos())
         #computer movements
         else:
             if(not self.avatar.movement):

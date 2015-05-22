@@ -38,3 +38,9 @@ class game_SpatialHash(SpatialHash):
         cell_id = row + col*cols
         
         return self.get_cell(cell_id)
+        
+    def get_grid_by_worldcoordinates(self,x,y):
+        cell = State.world.index_at(x,y)
+        row,col = State.world.get_cell_grid(cell)
+        
+        return row,col         

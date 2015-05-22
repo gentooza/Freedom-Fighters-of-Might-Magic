@@ -27,6 +27,7 @@ try:
   import utils
   import paths
   import gummworld2
+  import game_engine
   from gummworld2 import Engine, State, BasicMap, SubPixelSurface, View, Vec2d
   from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
   from gummworld2 import context, model, spatialhash, toolkit
@@ -56,29 +57,32 @@ class computerPlayer:
    '''function to rpepare path, after studying enemy heroes, local situation, mines, resources, etc.'''
    '''v1 if enemy hero is weaker, attack, if is stronger flee, if is equal simply go idle over the map exploring'''
    def prepare(self,computer_hero,world,avatar_layer,terrain_layer,collision_layer,objects_layer):
-       move_x = move_y = 0
+       #analyse map seeking objectives:
+       #for the instance only one hero   as objective 
        for hero in avatar_layer:
            if(hero != computer_hero):
                if not self.objective:
-                   self.objective = hero
-               if not self.path:
-                   self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
-                   if not self.path:
-                       self.objective = None
+                   self.possible_objective = hero
+                   
+       if self.possible_objective != self.objective:
+            #new objective, new decission, new path
+            self.objective = self.possible_objective
+            self.possible_objective = None
+            self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
+       #already with same objective   
+       else:
+           if not self.path:
+               self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
+           else:
+               return
 
    '''to move hero we needs our situation
    the enemy situation, his strength, our strength'''
    def flee_attack(self,hero,enemy_hero,world,terrain_layer,collision_layer,avatar_layer):
        #print('computer hero position:',hero.position,' human hero position:',enemy_hero.position)
-       x = hero.position[0]
-       y = hero.position[1]
-       cell = State.world.index_at(x,y)
-       row,col = State.world.get_cell_grid(cell)
+       row,col = world.get_grid_by_worldcoordinates(hero.position[0],hero.position[1])
        print('computer hero position:',row,col)
-       x = enemy_hero.position[0]
-       y = enemy_hero.position[1]
-       cell = State.world.index_at(x,y)
-       row,col = State.world.get_cell_grid(cell)
+       row,col = world.get_grid_by_worldcoordinates(enemy_hero.position[0],enemy_hero.position[1])
        print('human hero position:',row,col)   
        path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
        print('distance:')
@@ -101,6 +105,7 @@ class computerPlayer:
           if self.path:             
               self.path.clear()
        return
+       
    def move(self,hero):
        if self.path:
           cell_id,cell_G =  self.path.pop(0)
