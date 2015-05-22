@@ -131,7 +131,7 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    path = []
 
    #destination
-   pos = State.camera.screen_to_world(pos)
+   #pos = State.camera.screen_to_world(pos)
    final_cell = cell(world.index_at(pos[0],pos[1]),None)
    if(final_cell.id == None):
       return;
@@ -140,7 +140,7 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
       return None,None
    #origin
    orig_cell = cell(world.index_at(orig_pos[0],orig_pos[1]),None)
-
+   print('setting path from:(',orig_pos[0],',',orig_pos[1],') to (',pos[0],',',pos[1],')')
    #if destination is the same as origin, then, no path and return
    if(orig_cell.id == final_cell.id):
       final_cell.id = None

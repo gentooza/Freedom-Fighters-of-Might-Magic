@@ -274,7 +274,7 @@ class gameEngine(Engine):
         if (self.final_cell_id == None):
            camera = State.camera
            orig_pos = camera.target.position
-           self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
+           self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,world_pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         #2 if we already have a destination
         else:
            #in which cell are we clicking?
@@ -323,7 +323,7 @@ class gameEngine(Engine):
                  self.avatar.stopMove(Vec2d(self.laststeppath[0],self.laststeppath[1]))
               camera = State.camera
               orig_pos = camera.target.position
-              self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
+              self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,world_pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         return move_G
 
     #keyboard movement between cells
