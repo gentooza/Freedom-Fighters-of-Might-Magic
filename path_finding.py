@@ -98,7 +98,7 @@ def a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer,avatars
             return
         retracePath(c.parent)
 
-   #adding adjacent cells
+   #adding origin
    openList.add(current)
    while len(openList) is not 0:
        #print('elements in openlist:')
@@ -135,7 +135,7 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    final_cell = cell(world.index_at(pos[0],pos[1]),None)
    if(final_cell.id == None):
       return;
-   col,row = world.get_cell_grid(final_cell.id)
+   row,col = world.get_cell_grid(final_cell.id)
    if(collision_layer.layer.content2D[row][col] != 0):
       return None,None
    #origin
@@ -145,25 +145,22 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    if(orig_cell.id == final_cell.id):
       final_cell.id = None
       return path,None;
-   orig_col,orig_row = world.get_cell_grid(orig_cell.id)
-   idx= terrain_layer.layer.content2D[orig_row][orig_col]
+   orig_row,orig_col = world.get_cell_grid(orig_cell.id)
+   x = orig_col
+   y = orig_row
+   idx= terrain_layer.layer.content2D[x][y]
    orig_cell.G = idx
-   final_cell.G = terrain_layer.layer.content2D[row][col]
-   
-   #print(orig_col,orig_row,idx)
-   #print(terrain_costs[idx])
-   #steps
-   
+   x = col
+   y = row
+   #check for errors?
+   final_cell.G = terrain_layer.layer.content2D[x][y]
+   #################
+ 
    path =  a_algorithm(orig_cell,final_cell,world,terrain_layer,collision_layer, avatars_layer)
    #removing origin from path   
    if path:
        path.pop(0)
-   #print('to go from cell_id: ', orig_cell.id,'  to cell_id: ',final_cell.id)
-   #for element in path:
-   #   print(element)
-    
-   #what if we erase the first step, the origin?
-   #################################path.pop(0)
+
    return path,final_cell.id
 
 
