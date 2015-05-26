@@ -49,7 +49,7 @@ class computerPlayer:
    def __init__(self,aiparameters):
       self.safeRatius = 10
       self.attackRatius = 14
-      self.path = None
+      self.path = path_finding.path()
       self.objective = None
       self.possible_objective = None
       return
@@ -71,7 +71,7 @@ class computerPlayer:
             self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
        #already with same objective   
        else:
-           if not self.path:
+           if not self.path.route:
                self.flee_attack(computer_hero,hero,world,terrain_layer,collision_layer,avatar_layer)
            else:
                return
@@ -84,31 +84,31 @@ class computerPlayer:
        print('computer hero position:',row,col)
        row,col = world.get_grid_by_worldcoordinates(enemy_hero.position[0],enemy_hero.position[1])
        print('human hero position:',row,col)   
-       path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
+       final_cell_id = self.path.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
        print('distance:')
-       print(len(path))
+       print(len(self.path.route))
        print('complete path:')
-       for element_id,element_G in path:
+       for element_id,element_G in self.path.route:
            print('col and row (y,x):',world.get_cell_grid(element_id))
-       if len(path) <= self.attackRatius and hero.strength > enemy_hero.strength:
+       if len(self.path.route) <= self.attackRatius and hero.strength > enemy_hero.strength:
           #attack
           print('attack!')
-          self.path,final_cell_id = path_finding.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
-       elif len(path) <= self.safeRatius and hero.strength < enemy_hero.strength:
+          final_cell_id = self.path.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
+       elif len(self.path.route) <= self.safeRatius and hero.strength < enemy_hero.strength:
           #flee
           print('flee')
-          if self.path:
-              self.path.clear()
+          if self.path.route:
+              self.path.route.clear()
        else:
           #idle
           print('idle')
-          if self.path:             
-              self.path.clear()
+          if self.path.route:             
+              self.path.route.clear()
        return
        
    def move(self,hero):
-       if self.path:
-          cell_id,cell_G =  self.path.pop(0)
+       if self.path.route:
+          cell_id,cell_G =  self.path.route.pop(0)
           wx, wy = hero.position
           cell_avatar = State.world.index_at(wx,wy)
           o_row,o_col = State.world.get_cell_grid(cell_avatar)
