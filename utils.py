@@ -16,14 +16,17 @@
 #
 
 try:
-	import sys
-	import random
-	import math
-	import os
-	import getopt
-	import pygame
-	from socket import *
-	from pygame.locals import *
+    import sys
+    import random
+    import math
+    import os
+    import getopt
+    import pygame
+    from socket import *
+    from pygame.locals import *
+    import paths
+    import gummworld2
+    from gummworld2 import *
 except ImportError as err:
 	print("couldn't load module. %s" % (err))
 	sys.exit(2)
@@ -55,5 +58,17 @@ def load_flag(num):
       colour = 'red'
    return image,colour              
 
-def set_path_to(dista,distb):
-    return
+def is_screen_pos_inside_map(screen_pos):
+   #checking map edges
+   rect = State.world.rect
+   world_pos = State.camera.screen_to_world(screen_pos)
+   #if mouse click is outside the map we do nothing!
+   if world_pos[0] < rect.left:
+      return False;
+   elif world_pos[0]  >= rect.right:
+      return False;
+   if world_pos[1]  < rect.top:
+      return False;
+   elif world_pos[1]  >= rect.bottom:
+      return False;
+   return True;

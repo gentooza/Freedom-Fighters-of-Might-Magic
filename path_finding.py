@@ -161,8 +161,57 @@ def pos2steps(orig_pos,pos,world,terrain_layer,collision_layer, avatars_layer):
    if path:
        path.pop(0)
 
+   #debug
+   print('path:')
+   #for element in path:
+   #    pos = world.get_cell_pos(element[0])
+   #    print('(',pos[1]+world.cell_size/2,',',pos[0]+world.cell_size/2,') , cost =',element[1])
    return path,final_cell.id
 
 
+'''it get a step from path
+returning:
+self.move_to: Vec2d to final coordinates
+self.step: Vec2d with the grid step to walk (one step left, diagonal upperleft, up, etc.) 
+cell_id: the destination cell id
+move_G: the movement cost to take this step
+'''
+def getStepFromPath(path,world):
+    
+    #debug:
+    #print('remaining path:')
+    #for element in path:
+    #    pos = world.get_cell_pos(element[0])
+    #    print('(',pos[1]+world.cell_size/2,',',pos[0]+world.cell_size/2,')')
+    #
+    orig_x,orig_y = State.camera.position
+    o_row,o_col = world.get_grid_by_worldcoordinates(orig_x,orig_y)
+    #taking step
+    cell_id,cell_G =  path.pop(0)
+    pos = world.get_cell_pos(cell_id)
+         
+    move_to = Vec2d(pos[1]+world.cell_size/2,pos[0]+world.cell_size/2)
+
+    d_row,d_col = world.get_cell_grid(cell_id)
+    col = row = 0
+    if(o_row -d_row > 0):
+        row = -1
+    elif(o_row - d_row < 0):
+        row = 1
+    else:
+        row = 0
+    if(o_col - d_col > 0):
+        col = -1
+    elif(o_col - d_col < 0):
+        col=1
+    else:
+        col = 0  
+    step = Vec2d( col,row)
+    return move_to,step,cell_id,cell_G
+        
+'''it returns a step to path'''
+def retStepToPath(path,cell_id,cell_G):
+    path.insert(0,(cell_id,cell_G))
+ 
 
 

@@ -31,6 +31,7 @@ import gummworld2
 from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
+import utils
 import objects
 import game_interface
 import ffmm_spatialhash
@@ -153,6 +154,7 @@ class gameEngine(Engine):
         
         # Mouse and movement state. move_to is in world coordinates.
         self.move_to = None
+        self.move_to_G = 0
         self.speed = None
         self.mouse_down = False #left click
         self.mouse_down2 = False  #right click
@@ -160,8 +162,10 @@ class gameEngine(Engine):
         self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0),0)
         self.final_cell_id = None
         self.path = []
+        self.confirmed_path = False
         self.mouse_reponse = 4
         self.iterator = 0
+        
         self.pathstep = None
         self.laststeppath = None 
         self.cellstep = None
@@ -206,7 +210,6 @@ class gameEngine(Engine):
 
     def update(self, dt):
         """overrides Engine.update"""
-        G = 0
         #endturn
         if self.actual_team.player == 'human':
            if self.endturn:
@@ -221,10 +224,10 @@ class gameEngine(Engine):
         # If mouse button is held down update for continuous walking.
         if self.actual_team.player == 'human':
             if self.mouse_down:
-                G =self.update_mouse_movement(pygame.mouse.get_pos())
-
+                self.update_mouse_movement_path(pygame.mouse.get_pos())
             if self.mouse_down2:
                 self.popup(pygame.mouse.get_pos())
+            self.update_mouse_movement()
         #computer movements
         else:
             if(not self.avatar.movement):
@@ -237,7 +240,7 @@ class gameEngine(Engine):
         #if self.key_down:
         #    self.update_keyboard_movement()     
         #update camera
-        self.update_camera_position(G)
+        self.update_camera_position()
         State.camera.update()
         ####
         #animate actors
@@ -248,82 +251,66 @@ class gameEngine(Engine):
         ###
         #steps
         
+    '''update mouse movement function
+    it takes a step from a path if exists and is confirmed
+    '''        
+    def update_mouse_movement(self):
 
-    def update_mouse_movement(self, pos):
-        #movement cost
-        move_G = 0
-        #checking map edges
-        rect = State.world.rect
+        #if already moving quit
+        if(self.avatar.movement):
+            return
+        #
+        #if path is not confirmed or even the path doesn't exist
+        if(not self.confirmed_path):
+            return
+        if(not self.path):
+            return
+        #
+        #taking step from path            
+        self.move_to, self.step, cell_id, move_G = path_finding.getStepFromPath(self.path,self.world)
+        #
+        #if can't move
+        if self.avatar.remaining_movement < move_G:
+            path_finding.retStepToPath(self.path,cell_id,move_G)
+            self.move_to = None
+            self.move_to_G = 0
+        self.move_x = self.step[0]
+        self.move_y = self.step[1]
+        self.move_to_G = move_G
+        #debug
+        #print('avatar position: (',State.camera.position[0],',',State.camera.position[1],')   and moving to: ',self.move_to)
+        #ok
+        return
+        
+    '''update mouse movement path function
+    it takes mouse position and:
+    if click in new destination we get a new path
+    if click in same destination we confirm path
+    '''
+    def update_mouse_movement_path(self, pos):
+
+        if(not utils.is_screen_pos_inside_map(pos)):
+           return
+
+        #in which cell are we clicking?
         world_pos = State.camera.screen_to_world(pos)
-        #if mouse click is outside the map we do nothing!
-        if world_pos[0] < rect.left:
-           return;
-        elif world_pos[0]  >= rect.right:
-           return;
-        if world_pos[1]  < rect.top:
-           return;
-        elif world_pos[1]  >= rect.bottom:
-           return;
-
-        # Final destination reset.
-        self.move_to = None
-        ##
-        #1 case:if we have no destination we prepare the path to the cell of coordinates given by mouse click!
-        if (self.final_cell_id == None):
-           camera = State.camera
-           orig_pos = camera.target.position
+        cell = self.world.index_at(world_pos[0],world_pos[1])
+        #1 case:if we have no destination, or destination is different to previous destination we prepare the path to the cell of coordinates given by mouse click!
+        if (cell != self.final_cell_id):
+           if not self.move_to:
+              camera = State.camera
+              orig_pos = camera.target.position
+           else:
+              orig_pos = self.move_to
+           self.confirmed_path = False
            self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,world_pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
         #2 if we already have a destination
         else:
-           #in which cell are we clicking?
-           world_pos = State.camera.screen_to_world(pos)
-           cell = self.world.index_at(world_pos[0],world_pos[1])
            #if clicked the same destination again
            #movement starts!!
-           if(cell == self.final_cell_id and self.path and not self.avatar.movement):
-              move_G,cell_id = self.getStepFromPath()
-              if self.avatar.remaining_movement < move_G:
-                 self.retStepToPath(cell_id,move_G)
-                 self.move_to = None
-                 self.step = Vec2d(0, 0)
-                 move_G = 0
-              else:
-                 wx, wy = State.camera.target.position
-                 cell_id = self.world.index_at(wx,wy)
-                 x,y =self.world.get_cell_pos(cell_id)
-                 newx = y+self.cell_size/2
-                 newy = x+self.cell_size/2 
-                 if(self.lastcellstep):
-                    if cell_id == self.lastcellstep:
-                       self.lastcellG = 0
-                    else:
-                       self.avatar.remaining_movement += self.lastcellG
-                 else:
-                    self.lastcellG = 0                  
-                 State.camera.target.position = newx,newy
-
-                 
-           #else, new path
-           else:
-              if not self.laststeppath:
-                 
-                 wx, wy = State.camera.target.position
-                 cell_id = self.world.index_at(wx,wy)
-                 x,y =self.world.get_cell_pos(cell_id)
-                 State.camera.target.position = y+self.cell_size/2,x+self.cell_size/2
-                 self.avatar.stopMove(Vec2d( y+self.cell_size/2,x+self.cell_size/2))
-                 self.avatar.remaining_movement += self.lastcellG
-                 print('to cell origin')
-              else:
-                 State.camera.target.position = self.laststeppath[0],self.laststeppath[1]
-                 self.lastcellG = 0
-                 print('to last path')
-                 self.avatar.stopMove(Vec2d(self.laststeppath[0],self.laststeppath[1]))
-              camera = State.camera
-              orig_pos = camera.target.position
-              self.path,self.final_cell_id = path_finding.pos2steps(orig_pos,world_pos,self.world,self.terrain_layer,self.collision_layer,self.avatar_group)
-        return move_G
-
+           if(not self.avatar.movement):
+              self.confirmed_path = True
+        
     #keyboard movement between cells
     def update_keyboard_movement(self):
         # Gummchange
@@ -426,10 +413,12 @@ class gameEngine(Engine):
            self.step = Vec2d(move_x, move_y)
            #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
 
-    def update_camera_position(self,G):
-        move_G = G
+    def update_camera_position(self):
+        ##debug
+        #print('moving: ',self.move_to,'   , step: ',self.step)
+        #
         # if move_to, then the camera needs to keep stepping towards the destination tile.
-        if self.move_to and self.avatar.remaining_movement:
+        if self.move_to:
             #print('STEP pos{} -> dest{} by step{}'.format(
             #    tuple(self.camera.position), tuple(self.move_to), tuple(self.step)))
             camx, camy = self.camera.position
@@ -442,51 +431,24 @@ class gameEngine(Engine):
             # Check if camy has arrived at the move_to point. If it has set stepy to 0.
             if camy == self.move_to[1]:
                 stepy = 0
-            #if arrived
-            if(camx == self.move_to[0] and camy == self.move_to[1]):
-            #if it was only one step of the whole path, we take the next 
-               if(self.final_cell_id and self.path):
-                   move_G,cell_id = self.getStepFromPath()
-                   print('moving to: ',self.move_to[0],self.move_to[1])
-                   self.last_cell_visited = cell_id
-                   print(self.avatar.remaining_movement)
-                   if self.avatar.remaining_movement >= move_G:
-                       stepx, stepy = self.step
-                       print('moving')
-                   else:
-                       print('cant move!')
-                       stepx = stepy = 0
-                       self.retStepToPath(cell_id,move_G)
-               else:
-                   self.cleanMovement()
-            #checking map edges
-            rect = State.world.rect
-            if self.move_to[0] < rect.left:
-                stepx=0
-            elif self.move_to[0]  >= rect.right:
-                stepx=0
-            if self.move_to[1]  < rect.top:
-                stepy=0
-            elif self.move_to[1]  >= rect.bottom:
-                stepy=0
             # If steps remain on the x or y axis, update the camera position. Else, the
             # camera/avatar is done moving, so set self.move_to = None.
             if stepx or stepy:
+                self.camera.position += stepx, stepy
                 self.laststepx = stepx
                 self.laststepy = stepy
-                self.camera.position += stepx, stepy
                 #avatar animation
                 #print('avatar animation!')
                 self.avatar.move(Vec2d(stepx,stepy))
                 self.gameSounds.playsound('move')
-                self.avatar.remaining_movement -= move_G
             else:
-                #print("stop moving {},{}".format(int(self.laststepx),int(self.laststepy)))
+                print("stop moving {},{}".format(int(self.laststepx),int(self.laststepy)))
                 self.move_to = None
                 #avatar animation
                 self.avatar.stopMove(Vec2d(self.laststepx,self.laststepy))
-                self.laststepx = self.laststepy = 0
                 self.pc_mov_cost = 0
+                self.avatar.remaining_movement -= self.move_to_G
+                self.move_to_G = 0
                 
        
         
@@ -830,7 +792,6 @@ class gameEngine(Engine):
         self.buttEndTurn.fgcolor = RED
 
     def popup(self,pos):
-       rect = State.world.rect
        world_pos = State.camera.screen_to_world(pos)
        cell_position = self.world.index_at(world_pos[0],world_pos[1])
        
@@ -843,54 +804,6 @@ class gameEngine(Engine):
        else:
            self.interface.erasehpopup()
 
-#####UTILS
-    '''it returns self.move_to and self.step from path'''
-    def getStepFromPath(self):
-        self.lastcellstep = self.cellstep
-        self.lastcellG = self.cellG
-        if(self.lastcellstep):
-           pos = self.world.get_cell_pos(self.lastcellstep)
-           self.laststeppath = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
-        cell_id,cell_G =  self.path.pop(0)
-        self.cellstep = cell_id
-        self.cellG = cell_G
-        #if cell 0 is origin we take the next
-        camera = State.camera
-        wx, wy = camera.target.position
-        cell_avatar = self.world.index_at(wx,wy)
-        if(cell_id == cell_avatar and self.path): 
-            cell_id,cell_G =  self.path.pop(0) 
-        ##
-        #DEBUG 
-        #print('to cell id: ',cell_id)
-        pos = self.world.get_cell_pos(cell_id)
-           
-        self.move_to = Vec2d(pos[1]+self.cell_size/2,pos[0]+self.cell_size/2)
-        self.new_x = self.move_to[0]# + self.cell_size/2
-        self.new_y = self.move_to[1]# + self.cell_size/2
-        #step calculation
-        o_col,o_row = self.world.get_cell_grid(cell_avatar)
-        d_col,d_row = self.world.get_cell_grid(cell_id)
-              
-        if(o_row -d_row > 0):
-            row = -1
-        elif(o_row - d_row < 0):
-            row = 1
-        else:
-            row = 0
-        if(o_col - d_col > 0):
-            col = -1
-        elif(o_col - d_col < 0):
-            col=1
-        else:
-            col = 0  
-        self.step = Vec2d( row,col)
-        return cell_G,cell_id    
-    '''it returns a step to path'''
-    def retStepToPath(self,cell_id,cell_G):
-        self.path.insert(0,(cell_id,cell_G))
-        self.lastcellstep = None
-        self.lastcell = None
-      
-    # App.on_quit
+
+
 
