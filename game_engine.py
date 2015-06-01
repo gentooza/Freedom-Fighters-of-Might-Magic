@@ -662,7 +662,7 @@ class gameEngine(Engine):
         #print('endturn function!')
         #path saving
         self.cleanMovement()
-        self.avatar.saved_path = self.path.copy()
+        self.avatar.saved_path = self.path
 
         ############
         self.actual_team.heroes.append(self.avatar)     
@@ -687,10 +687,7 @@ class gameEngine(Engine):
         #path saving an restoring
         self.lastpathstep = self.pathstep = None
         if self.avatar.saved_path:
-           self.path.clear()
-           self.path = self.avatar.saved_path.copy()
-           self.move_to = None
-           self.step = None
+           self.path = self.avatar.saved_path
 
         self.move_to = None
         self.step = Vec2d(0,0)

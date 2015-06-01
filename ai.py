@@ -88,7 +88,7 @@ class computerPlayer:
        print('distance:')
        print(len(self.path.route))
        print('complete path:')
-       for element_id,element_G in self.path.route:
+       for element_id,element_G, element_type in self.path.route:
            print('col and row (y,x):',world.get_cell_grid(element_id))
        if len(self.path.route) <= self.attackRatius and hero.strength > enemy_hero.strength:
           #attack
@@ -108,7 +108,7 @@ class computerPlayer:
        
    def move(self,hero):
        if self.path.route:
-          cell_id,cell_G =  self.path.route.pop(0)
+          cell_id,cell_G,cell_type =  self.path.route.pop(0)
           wx, wy = hero.position
           cell_avatar = State.world.index_at(wx,wy)
           o_row,o_col = State.world.get_cell_grid(cell_avatar)

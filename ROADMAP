@@ -4,16 +4,15 @@ map:
 - starting position for creature
 - more textures for obstacles and terrains
 game:
-- units collision
-- start works for world map AI
-- work in bugfixes and stability
-- work in cleaning code
+= units collision
++ start works for world map AI
++ work in bugfixes and stability
++ work in cleaning code
 - start working in hero army
-- start designing the battle screen
++ attack events
 sound and music:
-- music for screens
-- sound of horse
-- sound of background in world map
-- music of background in world map
++ music for screens
++ sound of horse
++ music of background in world map
 - volume in configuration
 
