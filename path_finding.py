@@ -40,6 +40,7 @@ class cell(object):
       self.parent = parent
       self.H = 0
       self.G = 0
+      self.type = 0
 class path():
     def __init__(self):
         self.route = None
@@ -73,6 +74,7 @@ class path():
                         col_difference = 0.1
                     ####
                     cell_tmp.H = (abs(row_difference)+abs(col_difference))*2
+                    cell_tmp.type = 0
                     #if there is no collision
                     if(collision_layer.layer.content2D[row][col] == 0):
                         #and if there is no other avatar or creature
@@ -82,6 +84,10 @@ class path():
                                 occuped = True
                         if not occuped:
                             adjacents.add(cell_tmp)
+                        if occuped and cell_tmp.id == dest_cell.id: #attack!
+                            cell_tmp.type = 2
+                            adjacents.add(cell_tmp)
+                            
 
         return adjacents
 
@@ -96,7 +102,7 @@ class path():
             #(x,y) = world.get_cell_pos(c.id)
             #cell size!
             #path.insert(0,(x+30,y+30))
-            path.insert(0,(c.id,c.G))
+            path.insert(0,(c.id,c.G,c.type))
             if c.parent == None:
                 return
             retracePath(c.parent)
@@ -136,6 +142,13 @@ class path():
        #destination
        #pos = State.camera.screen_to_world(pos)
        final_cell = cell(world.index_at(pos[0],pos[1]),None)
+       #last step is attack?
+       #attack = False
+       #for creature in avatars_layer:
+       #    if final_cell == world.index_at(creature.position[0],creature.position[1]):
+       #        attack = True
+       #last step is action?
+       #NOT IMPLEMENTED        
        if(final_cell.id == None):
           return;
        row,col = world.get_cell_grid(final_cell.id)
@@ -193,7 +206,7 @@ class path():
         #taking step
         if(not self.route):
             return #ERROR
-        cell_id,cell_G =  self.route.pop(0)
+        cell_id,cell_G,cell_type =  self.route.pop(0)
         pos = world.get_cell_pos(cell_id)
              
         move_to = Vec2d(pos[1]+world.cell_size/2,pos[0]+world.cell_size/2)
@@ -213,11 +226,11 @@ class path():
         else:
             col = 0  
         step = Vec2d( col,row)
-        return move_to,step,cell_id,cell_G
+        return move_to,step,cell_id,cell_G,cell_type
             
     '''it returns a step to path'''
-    def retStepToPath(self,cell_id,cell_G):
-        self.route.insert(0,(cell_id,cell_G))
+    def retStepToPath(self,cell_id,cell_G,cell_type):
+        self.route.insert(0,(cell_id,cell_G,cell_type))
  
 
 

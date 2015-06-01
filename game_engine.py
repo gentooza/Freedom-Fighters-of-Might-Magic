@@ -267,11 +267,11 @@ class gameEngine(Engine):
             return
         #
         #taking step from path            
-        self.move_to, self.step, cell_id, move_G = self.path.getStepFromPath(self.world)
+        self.move_to, self.step, cell_id, move_G, cell_type = self.path.getStepFromPath(self.world)
         #
         #if can't move
         if self.avatar.remaining_movement < move_G:
-            self.path.retStepToPath(cell_id,move_G)
+            self.path.retStepToPath(cell_id,move_G,cell_type)
             self.move_to = None
             self.move_to_G = 0
         self.move_x = self.step[0]
@@ -509,10 +509,18 @@ class gameEngine(Engine):
            x += self.cell_size/2
            y += self.cell_size/2
            if(total_movement >= element[1]):
-              arrow = objects.arrow_step("dot-white.png","misc",(x,y))
-              total_movement -= element[1]
+               if(element[2] == 2):
+                  sprite = "new-battle2.png"
+               else:
+                  sprite = "dot-white.png"  
+               arrow = objects.arrow_step(sprite,"misc",(x,y))
+               total_movement -= element[1]
            else:
-              arrow = objects.arrow_step("new-journey.png","misc",(x,y))
+               if(element[2] == 2):
+                  sprite = "new-battle.png"
+               else:
+                  sprite = "new-journey.png"
+               arrow = objects.arrow_step(sprite,"misc",(x,y))
            camera.surface.blit(arrow.image, camera.world_to_screen(arrow.position))
 
     
