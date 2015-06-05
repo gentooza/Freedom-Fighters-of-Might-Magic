@@ -48,7 +48,13 @@ class gameInterface(object):
 
       #hero popup
       self.hpopup = utils.load_png("gui/heropopup.png")
-      self.shownhpoup = False 
+      self.hpopup_screen = None
+      self.shownhpoup = False
+      
+      #standar popup
+      self.popup =  None 
+      self.popup_screen = None
+      self.shownpopup = False
  
       #position, not positioned yet
       self.menubar_rect = self.menubar.get_rect()
@@ -63,7 +69,7 @@ class gameInterface(object):
       self.menubar_screen = View(screen.surface, self.menubar_rect)
       #self.minimap_screen = View(screen.surface, self.minimap_rect)
       self.sidebar_screen = View(screen.surface, self.sidebar_rect)
-      self.hpopup_screen = None
+      
       #minimap
       self.minimap_map = Minimap( self.minimap_map_rect)
 
@@ -169,6 +175,63 @@ class gameInterface(object):
        if(self.hpopup_screen):  
           self.hpopup_screen.clear()
           self.himage_screen.clear() 
+          
+   def createpopup(self,screen,pos,message,itype):
+       self.shownpopup = True
+       if (self.popup_screen):
+          self.popup_screen.clear()
+
+       self.popup = popup(self.popup_screen,screen,pos,message,itype)
+       
+
+       self.popup_rect = pygame.Rect(pos[0],pos[1], self.popup.width, self.popup.height)
+       pygame.draw.rect(screen.surface,(99, 99, 99), self.popup_rect, 1)
+       self.popup_screen = View(screen.surface, self.popup_rect)
+       #construction
+       self.popup_screen.surface.blit(self.popup,(0,0))
+
+       #content & hero attributes!
+       attributes = hero.attr
+       ##portrait
+       image =  utils.load_png("portraits/" + attributes['portrait']+'.png')
+       self.himage = utils.load_png('portraits/no_portrait.png')
+       self.himage = pygame.transform.scale(image,(66,66))
+       self.himage_rect = pygame.Rect(self.hpopup_x+6,self.hpopup_y+1, 66, 66)
+       pygame.draw.rect(self.hpopup_screen.surface,(99, 99, 99), self.himage_rect, 1)
+       self.himage_screen = View(screen.surface, self.himage_rect)
+       self.himage_screen.surface.blit(self.himage,(0,0))
+       ##Name
+       self.hname = self.name_font.render(attributes['name'],True,(230,230,230))
+       self.hname_rect = pygame.Rect(self.hpopup_x+80,self.hpopup_y+1, 90, 20)
+       self.hname_screen = View(screen.surface, self.hname_rect)
+       self.hname_screen.surface.blit(self.hname,(0,0))
+       ##attributes
+       self.hattack = self.atributes_font.render("A: " + str(attributes['attack']),True,(220,220,220))
+       self.hattack_rect = pygame.Rect(self.hpopup_x+85,self.hpopup_y+22, 40, 15)
+       self.hattack_screen = View(screen.surface, self.hattack_rect)
+       self.hattack_screen.surface.blit(self.hattack,(0,0))
+
+       self.hdef = self.atributes_font.render("D: " + str(attributes['deffense']),True,(220,220,220))
+       self.hdef_rect = pygame.Rect(self.hpopup_x+125,self.hpopup_y+22, 40, 15)
+       self.hdef_screen = View(screen.surface, self.hdef_rect)
+       self.hdef_screen.surface.blit(self.hdef,(0,0))
+
+       self.hpower = self.atributes_font.render("P: " + str(attributes['magic_p']),True,(220,220,220))
+       self.hpower_rect = pygame.Rect(self.hpopup_x+85,self.hpopup_y+40, 40, 15)
+       self.hpower_screen = View(screen.surface, self.hpower_rect)
+       self.hpower_screen.surface.blit(self.hpower,(0,0))
+
+       self.hknow = self.atributes_font.render("K: " + str(attributes['magic_k']),True,(220,220,220))
+       self.hknow_rect = pygame.Rect(self.hpopup_x+125,self.hpopup_y+40, 40, 15)
+       self.hknow_screen = View(screen.surface, self.hknow_rect)
+       self.hknow_screen.surface.blit(self.hknow,(0,0))
+
+   def erasepopup(self):
+       self.shownpopup = False
+       if(self.popup_screen):  
+          self.popup_screen.clear()
+       if(self.popup):
+           popup.destroy()
 
 class Minimap(object):
     
@@ -229,3 +292,20 @@ class Minimap(object):
         
         # Draw a border.
         pygame.draw.rect(State.screen.surface, (99, 99, 99), mini_screen.parent_rect.inflate(2, 2), 1)
+
+'''generic popup class, giving size for resolutionc hanges,
+the message text,
+and the popup type:
+0 -> ok popup
+1 -> ok,cancel popup'''
+
+class popup(object):
+    def __init__(self,pos,smessage,itype):
+        self.shownhpoup = False
+        self.background = utils.load_png("gui/wood_popup.png") #orig resolution: 181x63
+        self.side = utils.load_png("gui/popup_side_medium.png") #orig resolution: 10x250
+        self.top = utils.load_png("gui/popup_top.png") #orig resolution: 352x10
+        
+        self.width = 352
+        self.height = 250
+        
