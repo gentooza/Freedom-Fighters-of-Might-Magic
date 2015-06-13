@@ -77,7 +77,6 @@ class ourHero(object):
    #flag
    self.flagsID = [("data/flags/%s-%s.png" % (flag_colour,str(num)), 0.1) for num in range(1,4)] 
    self.animFlags  = pyganim.PygAnimation(self.flagsID)
-
    # create the right-facing sprites by copying and flipping the left-facing sprites
    self.animObjs['-n-run'] = self.animObjs['-se-run'].getCopy()
    self.animObjs['-s-run'] = self.animObjs['-se-run'].getCopy()
@@ -225,7 +224,111 @@ class arrow_step(object):
    self.dir = direction
    self.movement = 0
    
+class creature(object):
 
+ def __init__(self,image,path,map_pos, screen_pos):
+   self._position = Vec2d(0,0) # x e y? funciones de gummworld2
+
+   #self.direction = DOWN
+   self.dir = Vec2d(0.0, 0.0)
+   #images loading
+   front_image = path + '/' + image + '-idle-1.png'
+   self.front_standing = utils.load_png(front_image)
+   self.right_standing = utils.load_png(front_image)
+   
+   
+
+   self.back_standing = pygame.transform.flip(self.front_standing, True, False) 
+   self.left_standing = pygame.transform.flip(self.right_standing, True, False) 
+   self.playerWidth, self.playerHeight = self.front_standing.get_size()
+
+   ##animation loading
+   self.imagesAndDurations = [('data/peasant/peasant-idle-%s.png' % (str(num)), 0.1) for num in range(1,7)]
+   self.animObjs = pyganim.PygAnimation(self.imagesAndDurations,False)
+   self.movement = 0
+   # to improve the path and left and right animations
+
+   # create the right-facing sprites by copying and flipping the left-facing sprites
+   #self.animObjs['-n-run'] = self.animObjs['-se-run'].getCopy()
+   #self.animObjs['-s-run'] = self.animObjs['-se-run'].getCopy()
+   #self.animObjs['-s-run'].flip(True, False)
+   #self.animObjs['-s-run'].makeTransformsPermanent()
+   #self.animObjs['-sw-run'] = self.animObjs['-se-run'].getCopy()
+   #self.animObjs['-sw-run'].flip(True, False)
+   #self.animObjs['-sw-run'].makeTransformsPermanent()
+
+   #self.image = self.animObjs['-se-run'].getCurrentFrame()
+   self.image = self.front_standing
+   self.rect = self.image.get_rect()
+
+
+   #move conductor
+   self.moveConductor = pyganim.PygConductor(self.animObjs)
+
+##voy por aqui modificando!!
+   #start direction
+   #self.direction = DOWN
+   self.x = screen_pos[0]
+   self.y = screen_pos[1]
+   self.screen_position = screen_pos
+   self.position = map_pos
+
+   #game attributes
+   self.strength = 1
+   
+ def getpoints(self):
+    r = self.rect
+    return r.topleft, r.topright, r.bottomright, r.bottomleft
+ points = property(getpoints)
+
+ def getposition(self):
+    """GOTCHA: Something like "rect_geom.position.x += 1" will not do what
+    you expect. That operation does not update the rect instance variable.
+    Instead use "rect_geom.position += (1,0)".
+    """
+    return self._position
+
+ def setposition(self, val):
+    p = self._position
+    p.x, p.y = val
+    self.rect.center = round(p.x), round(p.y)
+ position = property(getposition, setposition)
+
+
+ def move(self):
+   self.moveConductor.play() # calling play() while the animation objects are already playing is okay; in that case play() is a no-op
+   self.movement = 1
+
+ def stopMove(self):
+   self.moveConductor.stop() # calling stop() while the animation objects are already stopped is okay; in that case stop() is a no-op
+   self.movement = 0
+		 
+ def getRect(self):
+   return self.rect
+
+ def update(self): #no screen
+   self.x = self.position[0]
+   self.y = self.position[1]
+   if self.movement:
+       self.image = self.animObjs.getCurrentFrame()
+       if(self.animObjs.isFinished()):
+           print('creature animation finished!')
+           self.image = self.front_standing
+           self.stopMove()
+
+   else:
+       self.image = self.front_standing
+
+   self.rect = self.image.get_rect()
+   self.rect.center = self.x, self.y
+   #print('animating flag')
+
+   
+#game dynamics procedures
+ def setStrength(self,value):
+     self.strength = value
+   #self.flag =utils.load_png('flags/red-1.png')# self.animFlags.getCurrentFrame()
+  
      
 
 

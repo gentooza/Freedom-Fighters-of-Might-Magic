@@ -40,19 +40,43 @@ import objects
 import game_engine
 import ai
 
+
+
+#to improve, mix the for loop with the factions __init__ 
+class creatures(object):
+    def __init__(self,objects_layer):
+        self.group = []
+        for element in objects_layer:
+            faction_num = int(element.properties['team'])
+            if faction_num == 0:
+                stype = element.properties['type']
+                qty = element.properties['qty']
+                x,y = element.rect.x,element.rect.y
+                self.group.append(group(stype,qty,(x,y)))
+
+
+
+#to improve, add attributes, moral, luck modifiers, etc.
+class group(object):
+    def __init__(self,stype,qty,coordinates):
+        #cell size
+        newcoordinates = (coordinates[0]+30,coordinates[1]+30)
+        self.creature = objects.creature("peasant","peasant",newcoordinates,(0, 0))
+
 class factions(object):
  def __init__(self,objects_layer):
     self.n_factions = 0
     self.team = []
     for element in objects_layer:
        faction_num = int(element.properties['team'])
-       faction_hero = element.properties['heroe']
-       player = element.properties['player']
-       #simple error parameter input check
-       if(player != 'computer' and player != 'human'):
-          player = 'computer'
-       x,y = element.rect.x,element.rect.y
-       self.team.append(team(faction_num,faction_hero,(x,y),player))
+       if faction_num != 0:
+          faction_hero = element.properties['heroe']
+          player = element.properties['player']
+          #simple error parameter input check
+          if(player != 'computer' and player != 'human'):
+             player = 'computer'
+          x,y = element.rect.x,element.rect.y
+          self.team.append(team(faction_num,faction_hero,(x,y),player))
 
 
 

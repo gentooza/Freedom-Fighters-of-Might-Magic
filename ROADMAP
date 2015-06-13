@@ -1,7 +1,8 @@
 V0.0.6 ALPHA
 ---------------------
 map:
-- starting position for creature
++ starting position for creature
++ creature animation
 - more textures for obstacles and terrains
 game:
 = units collision
@@ -14,5 +15,5 @@ sound and music:
 + music for screens
 + sound of horse
 + music of background in world map
-- volume in configuration
+
 

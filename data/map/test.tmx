@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="60" tileheight="60" nextobjectid="8">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="60" tileheight="60" nextobjectid="12">
  <tileset firstgid="1" name="test" tilewidth="60" tileheight="60">
   <image source="test.png" width="120" height="120"/>
   <tile id="0">
@@ -26,9 +26,14 @@
  </tileset>
  <tileset firstgid="5" name="obstacles" tilewidth="60" tileheight="60">
   <image source="test_obstaculos.png" width="120" height="60"/>
+  <terraintypes>
+   <terrain name="Nuevo Terreno" tile="1"/>
+  </terraintypes>
+  <tile id="0" terrain="0,0,0,0"/>
+  <tile id="1" terrain="0,,0,"/>
  </tileset>
  <tileset firstgid="7" name="objetos" tilewidth="60" tileheight="60">
-  <image source="objects.png" width="60" height="60"/>
+  <image source="objects.png" width="120" height="60"/>
  </tileset>
  <layer name="ground" width="20" height="20">
   <data encoding="base64" compression="zlib">
@@ -58,6 +63,13 @@
     <property name="heroe" value="sandro"/>
     <property name="player" value="human"/>
     <property name="team" value="1"/>
+   </properties>
+  </object>
+  <object id="8" gid="8" x="900" y="300">
+   <properties>
+    <property name="qty" value="20"/>
+    <property name="team" value="0"/>
+    <property name="type" value="peasant"/>
    </properties>
   </object>
  </objectgroup>

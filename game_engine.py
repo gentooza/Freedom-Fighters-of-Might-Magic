@@ -39,6 +39,7 @@ import path_finding
 import game_dynamics
 import pygbutton
 import sounds
+import random
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -78,12 +79,15 @@ class gameEngine(Engine):
         self.terrain_layer = worldmap.layers[0]
         self.collision_layer = worldmap.layers[1]
         self.objects_layer = worldmap.layers[3]
-
+        #loading factions
         self.factions = game_dynamics.factions(self.objects_layer)
 
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
         self.avatar.remaining_movement = self.avatar.move_points
+        
+        #loading creatures
+        self.creatures = game_dynamics.creatures(self.objects_layer)
         #for element in  self.terrain_layer.objects:
         #   print(element.properties)
        
@@ -106,6 +110,8 @@ class gameEngine(Engine):
         for teams in self.factions.team:
            for avatars in teams.heroes:
               self.avatar_group.add(avatars)
+        for group in self.creatures.group:
+            self.avatar_group.add(group.creature)
        
         ##################
         #Game dynamics
@@ -245,6 +251,7 @@ class gameEngine(Engine):
         ####
         #animate actors
         self.anim_avatar()
+        self.anim_creatures()
         ###
         #hud
         State.hud.update(dt)
@@ -546,6 +553,22 @@ class gameEngine(Engine):
 
         self.avatar.update()
         self.avatar_group.add(self.avatar)
+
+    def anim_creatures(self):
+        #self.avatar.update()
+        #camera = State.camera
+        #avatar = camera.target
+        #others avatars in others teams
+        for group in self.creatures.group:
+           print('movement creature:',group.creature.movement)
+           if(not group.creature.movement):
+               i = random.randint(1, 50)
+               print('random:',i)
+               if(i == 1):
+                   print('animating creature!')
+                   group.creature.move()
+           group.creature.update()
+           self.avatar_group.add(group.creature)
         
     def on_mouse_button_down(self,event, pos, button):
        if(button == 1): 
