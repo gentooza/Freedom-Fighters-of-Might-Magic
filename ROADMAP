@@ -3,7 +3,7 @@ V0.0.6 ALPHA
 map:
 + starting position for creature
 + creature animation
-- more textures for obstacles and terrains
++ more textures for obstacles and terrains
 game:
 = units collision
 + start works for world map AI

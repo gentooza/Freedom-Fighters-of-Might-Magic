@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="60" tileheight="60" nextobjectid="12">
  <tileset firstgid="1" name="test" tilewidth="60" tileheight="60">
-  <image source="test.png" width="120" height="120"/>
+  <image source="test.png" width="180" height="120"/>
   <tile id="0">
    <properties>
     <property name="move" value="1,2"/>
@@ -15,16 +15,21 @@
   </tile>
   <tile id="2">
    <properties>
-    <property name="move" value="1"/>
+    <property name="move" value="4"/>
    </properties>
   </tile>
   <tile id="3">
+   <properties>
+    <property name="move" value="1"/>
+   </properties>
+  </tile>
+  <tile id="4">
    <properties>
     <property name="move" value="1,2"/>
    </properties>
   </tile>
  </tileset>
- <tileset firstgid="5" name="obstacles" tilewidth="60" tileheight="60">
+ <tileset firstgid="7" name="obstacles" tilewidth="60" tileheight="60">
   <image source="test_obstaculos.png" width="120" height="60"/>
   <terraintypes>
    <terrain name="Nuevo Terreno" tile="1"/>
@@ -32,40 +37,40 @@
   <tile id="0" terrain="0,0,0,0"/>
   <tile id="1" terrain="0,,0,"/>
  </tileset>
- <tileset firstgid="7" name="objetos" tilewidth="60" tileheight="60">
+ <tileset firstgid="9" name="objetos" tilewidth="60" tileheight="60">
   <image source="objects.png" width="120" height="60"/>
  </tileset>
  <layer name="ground" width="20" height="20">
   <data encoding="base64" compression="zlib">
-   eJzN0jsKACAQQ8Gs9z+0fUBQ8oQUaWe/I2mCLEtikZ47iXey3Lut8+pR/dHztljEj5B/m1qN+TEXaVIWfcd2L93fBiMeAeA=
+   eJzN0TsOwDAIA1B+9z9zM2RAiEYRuCqDN/QEhomIG7EVcelYvA0DeJJYVU8OeZuLhobO4l4nL7PUmeLMyr2Zh+pPE8uKVtyn6tz8609rYr64C2miLPQfp3vd/h7azgIJ
   </data>
  </layer>
- <layer name="collisions" width="20" height="20">
+ <layer name="collisions" width="20" height="20" visible="0">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFpAK2IWAetc0cBaNgFIwCdAAAdegAGQ==
+   eJxjYBgFpAKOIWAetc0cBaNgFIwCdAAAmyAAIQ==
   </data>
  </layer>
- <layer name="freedom fighters" width="20" height="20">
+ <layer name="freedom fighters" width="20" height="20" visible="0">
   <data encoding="base64" compression="zlib">
    eJxjYBgFo2AUjIJRMApIBwAGQAAB
   </data>
  </layer>
- <objectgroup name="objects">
-  <object id="1" gid="7" x="480" y="180">
+ <objectgroup name="objects" visible="0">
+  <object id="1" gid="9" x="480" y="180">
    <properties>
     <property name="heroe" value="katrin"/>
     <property name="player" value="computer"/>
     <property name="team" value="2"/>
    </properties>
   </object>
-  <object id="7" gid="7" x="420" y="540">
+  <object id="7" gid="9" x="420" y="540">
    <properties>
     <property name="heroe" value="sandro"/>
     <property name="player" value="human"/>
     <property name="team" value="1"/>
    </properties>
   </object>
-  <object id="8" gid="8" x="900" y="300">
+  <object id="8" gid="10" x="900" y="300">
    <properties>
     <property name="qty" value="20"/>
     <property name="team" value="0"/>
