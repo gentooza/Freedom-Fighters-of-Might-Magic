@@ -52,7 +52,7 @@ katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'
 sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
 heroes = {'katrin':katrin,'sandro':sandro}
 
-terrain_costs = {1 : 1.2 , 2 : 1}
+
 
 class gameEngine(Engine):
     
@@ -218,7 +218,7 @@ class gameEngine(Engine):
         """overrides Engine.update"""
         #endturn
         if self.actual_team.player == 'human':
-           if self.endturn:
+           if self.endturn and not self.avatar.movement:
               self.endturn_fun()
         else:
            #print('computer turn!')
@@ -410,7 +410,7 @@ class gameEngine(Engine):
            self.new_y += self.cell_size/2
            #movement cost
            row,col = self.world.get_cell_grid(cell_id)
-           self.pc_mov_cost = terrain_costs[self.terrain_layer.layer.content2D[row][col]]
+           self.pc_mov_cost = path_finding.terrain_costs[self.terrain_layer.layer.content2D[row][col]]
            #print(self.avatar.remaining_movement,self.pc_mov_cost)
            self.avatar.remaining_movement -= self.pc_mov_cost
            #print(self.avatar.remaining_movement)

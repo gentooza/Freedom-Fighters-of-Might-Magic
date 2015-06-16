@@ -1,4 +1,20 @@
 
+V0.0.6 ALPHA 2015/06/16
+---------------------
+map:
++ starting position for neutral creature
++ neutral creature animation
++ one terrain added: 'mud' with its movement cost
+game:
++ starting work in units collision, not finished yet
++ starting work in world map AI, not finished yet
++ work in bugfixes and stability
++ work in cleaning code
++ starting work in attack events, not finished yet
+sound and music:
++ music for screens
++ sound of horse
++ music of background in world map
 
 V0.0.5 ALPHA 2015/05/07
 ---------------------

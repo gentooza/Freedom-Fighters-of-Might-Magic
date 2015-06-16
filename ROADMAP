@@ -1,19 +1,17 @@
-V0.0.6 ALPHA
+V0.0.7 ALPHA
 ---------------------
 map:
-+ starting position for creature
-+ creature animation
-+ more textures for obstacles and terrains
+- add new terrains
+- it's possible to insert collision layer as objects with transparency? (i.e: forest and mountains with 3D effect)
+game interface:
+- new game interface with pgu library integration
+- new buttons
+- new hero popup
+- new basic popup for attack event
+- drop support for pygbutton and custom popups
 game:
-= units collision
-+ start works for world map AI
-+ work in bugfixes and stability
-+ work in cleaning code
-- start working in hero army
-+ attack events
-sound and music:
-+ music for screens
-+ sound of horse
-+ music of background in world map
+- work in pathfinding A*algorithm, it has bugs, and need to be speeded up
+
+
 
 

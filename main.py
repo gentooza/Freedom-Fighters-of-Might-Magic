@@ -92,7 +92,7 @@ class app:
 #INTILIALIZATION
 #old 1014,965
 resolution = (1024,768)
-version = '0.0.5 ALPHA'
+version = '0.0.6 ALPHA'
 strCaption = 'FFMM ' + version
 tile_size=(30, 30) 
 map_size=(100, 100)

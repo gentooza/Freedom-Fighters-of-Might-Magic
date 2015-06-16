@@ -45,17 +45,17 @@
    eJzN0TsOwDAIA1B+9z9zM2RAiEYRuCqDN/QEhomIG7EVcelYvA0DeJJYVU8OeZuLhobO4l4nL7PUmeLMyr2Zh+pPE8uKVtyn6tz8609rYr64C2miLPQfp3vd/h7azgIJ
   </data>
  </layer>
- <layer name="collisions" width="20" height="20" visible="0">
+ <layer name="collisions" width="20" height="20">
   <data encoding="base64" compression="zlib">
    eJxjYBgFpAKOIWAetc0cBaNgFIwCdAAAmyAAIQ==
   </data>
  </layer>
- <layer name="freedom fighters" width="20" height="20" visible="0">
+ <layer name="freedom fighters" width="20" height="20">
   <data encoding="base64" compression="zlib">
    eJxjYBgFo2AUjIJRMApIBwAGQAAB
   </data>
  </layer>
- <objectgroup name="objects" visible="0">
+ <objectgroup name="objects">
   <object id="1" gid="9" x="480" y="180">
    <properties>
     <property name="heroe" value="katrin"/>
