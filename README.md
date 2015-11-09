@@ -24,7 +24,7 @@ I've based the work in the libraries:
 
 ###for installing pygame 1.92 for pyhton3 you have to do this:
 
-####under ubuntu 14.04/trisquel7:
+####under ubuntu 14.04/trisquel7 GNU/Linux:
 
 * install dependencies
 ```
@@ -44,9 +44,18 @@ sudo python3 setup.py install
 ```
 source:[pygame.org](http://www.pygame.org/wiki/CompileUbuntu)
 
+####under gentoo GNU/Linux:
+
+Pygame 1.92 is now official at gentoo repositories so simply:
+
+* using portage
+```
+emerge --ask dev-python/pygame
+``` 
+
 ##Execute
 
-####under ubuntu 14.0.4/Trisquel7:
+####under GNU/linux:
 ```
 python3 main.py
 ```
