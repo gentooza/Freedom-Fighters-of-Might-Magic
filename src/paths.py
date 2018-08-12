@@ -31,6 +31,10 @@ import sys
 
 progname = sys.argv[0]
 progdir = os.path.dirname(progname)
-sys.path.insert(0, os.path.normpath(os.path.join(progdir,'gamelib','pgu')))
-sys.path.insert(0, os.path.normpath(os.path.join(progdir,'gamelib')))
-sys.path.insert(0, progdir)
+sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src')))
+sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src','gamelib')))
+sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src','pgu')))
+
+from gummworld2 import data
+
+data.set_data_dir(os.path.normpath(os.path.join(progdir,'data')))

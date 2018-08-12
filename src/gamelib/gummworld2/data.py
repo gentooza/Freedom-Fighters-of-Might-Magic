@@ -148,4 +148,4 @@ subdirs = dict(
 )
 paths = {}
 
-set_data_dir(join_path(data_py,'..','..','data'))
+set_data_dir(join_path(data_py,'..','..','..','data'))
