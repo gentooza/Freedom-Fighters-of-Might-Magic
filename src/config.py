@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Freedom Fighters of Might & Magic.  If not, see <https://www.gnu.org/licenses/>.
 '''
+import pygame
+
 
 class Config_Manager:
     def __init__(self,config_file):
@@ -27,18 +29,28 @@ class Config_Manager:
             myConfig_file.close()
         except Exception as myError:
             print(myError)
+            print("INFO: creating basic config.cfg")
             self.create_basic(config_file)
     
     def load_parameters(self,config_file):
-        resolution = (1024,768)
-        fullscreen = False
+        '''loading from text config file'''
         for line in config_file:
             param_value = line.split('=')
             if(param_value[0] == "resolution"):
                 coordinates = param_value[1].split('x')
-                resolution = (int(coordinates[0]),int(coordinates[1]))
+                cfg_resolution = (int(coordinates[0]),int(coordinates[1]))
             if(param_value[0] == "fullscreen"):
-                fullscreen = self.str2bool(param_value[1])
+                cfg_fullscreen = self.str2bool(param_value[1])
+        '''checking configurations not in config file'''
+        try:
+            resolution = cfg_resolution
+        except:
+            resolution = self.initResolution(config_file)
+        try:
+            fullscreen = cfg_fullscreen
+        except:
+            fullscreen = self.initFullscreen(config_file)
+        '''------'''
         version = '0.0.6 ALPHA'
         strCaption = 'FFMM ' + version
         tile_size=(30, 30) 
@@ -53,14 +65,11 @@ class Config_Manager:
             
     def create_basic(self,config_file):
         myConfig_file = open(config_file,"w")
-        
-        txtResolution = "resolution=1024x768\n"
-        myConfig_file.write(txtResolution)
-        
-        txtFullscreen = "fullscreen=False\n"
-        myConfig_file.write(txtFullscreen)
-        
-        resolution = (1024,768)
+        '''resolution'''
+        resolution = self.initResolution(myConfig_file)
+        '''fullscreen'''
+        fullscreen = self.initFullscreen(myConfig_file)
+
         version = '0.0.6 ALPHA'
         strCaption = 'FFMM ' + version
         tile_size=(30, 30) 
@@ -70,8 +79,26 @@ class Config_Manager:
         FPS = 50
         NULL = 'NULL'
 
-        self.parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version , 'fullscreen' : False }
+        self.parameters = {'resolution' : resolution,'strcaption' : strCaption,'caption' : NULL,'tile_size' : tile_size,'map_size' : map_size, 'minimap_pos' : minimap_pos, 'minimap_size' : minimap_size, 'FPS' : FPS, 'version' : version , 'fullscreen' : fullscreen }
         myConfig_file.close()
+        
+    def initResolution(self,config_file):
+        infoObject = pygame.display.Info()
+        width = infoObject.current_w
+        height = infoObject.current_h
+        txtResolution = "resolution={}x{}\n".format(width,height)
+        config_file.write(txtResolution)
+        resolution = (width,height)
+        
+        return resolution
+    
+    def initFullscreen(self,config_file): 
+        txtFullscreen = "fullscreen=False\n"
+        config_file.write(txtFullscreen)
+        
+        return False
+
+    '''tools'''
         
     def str2bool(self,v):
         return v.lower() in ("yes", "true", "t", "1")
