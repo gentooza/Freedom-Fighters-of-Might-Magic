@@ -54,9 +54,9 @@ class config_menu:
         self.FPS = FPS
         
     def constructScene(self):
-       
+        myResolution=self.parameters["resolution"]
         self.toggleFull = pygbutton.PygButton((60, 380, 200, 40), 'TOGGLE FULLSCREEN')
-        self.buttQuit = pygbutton.PygButton((820, 700, 150, 40), 'OK')
+        self.buttQuit = pygbutton.PygButton((myResolution[0]-190, myResolution[1]-80, 150, 40), 'OK')
         
         self.objects = (self.toggleFull,self.buttQuit);
         for b in self.objects:

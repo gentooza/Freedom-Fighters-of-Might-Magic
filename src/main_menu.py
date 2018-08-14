@@ -51,10 +51,11 @@ class main_menu:
         self.FPS = FPS
         
     def constructScene(self):
-       
-        self.buttStartGame = pygbutton.PygButton((820, 600, 150, 40), 'Start New Game')
-        self.buttConfiguration = pygbutton.PygButton((820, 650, 150, 40), 'Configuration')
-        self.buttQuit = pygbutton.PygButton((820, 700, 150, 40), 'Quit to OS')
+        myResolution=self.parameters["resolution"]
+        
+        self.buttStartGame = pygbutton.PygButton((myResolution[0]-190, myResolution[1]-200, 150, 40), 'Start New Game')
+        self.buttConfiguration = pygbutton.PygButton((myResolution[0]-190, myResolution[1]-140, 150, 40), 'Configuration')
+        self.buttQuit = pygbutton.PygButton((myResolution[0]-190, myResolution[1]-80, 150, 40), 'Quit to OS')
         
         self.objects = (self.buttStartGame,self.buttConfiguration,self.buttQuit);
         for b in self.objects:
