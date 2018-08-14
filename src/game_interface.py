@@ -38,8 +38,8 @@ import utils
 
 class gameInterface(object):
     
-   def __init__(self, screen):
-
+   def __init__(self, screen, parameters):
+      self.parameters =parameters
       #loading images
       self.menubar =  utils.load_png("gui/menubar.png")
       #self.minimap = utils.load_png("gui/minimap.png")
@@ -61,10 +61,11 @@ class gameInterface(object):
       #self.minimap_rect = self.minimap.get_rect()
       self.sidebar_rect = self.sidebar.get_rect()
       #setting rectangles
-      self.menubar_rect = pygame.Rect(2, 0, 833, 27)
-      self.minimap_rect = pygame.Rect(833, 0, 181, 265)
-      self.minimap_map_rect = pygame.Rect(850, 10, 152, 205)
-      self.sidebar_rect = pygame.Rect(837, 0, 181, 768)
+      screen_resolution = self.parameters["resolution"]
+      self.menubar_rect = pygame.Rect(2, 0, screen_resolution[0]-183, 27)
+      self.minimap_rect = pygame.Rect(screen_resolution[0]-183, 0, 183, 265)
+      self.minimap_map_rect = pygame.Rect(screen_resolution[0]-160, 10, 150, 205)
+      self.sidebar_rect = pygame.Rect(screen_resolution[0]-179, 0, 179, screen_resolution[1])
       #creating mini screens from state screen, method obtained from example 10_minimap.py of gummlib2
       self.menubar_screen = View(screen.surface, self.menubar_rect)
       #self.minimap_screen = View(screen.surface, self.minimap_rect)
@@ -76,16 +77,7 @@ class gameInterface(object):
       #hero popup
       self.name_font = pygame.font.SysFont('verdana',16)
       self.name_font.set_bold(True)
-      self.atributes_font = pygame.font.SysFont('verdana',14)
-     
-    #def update(self, dt):
-
-
-    #def update_mouse_movement(self, pos):
-       
-
-   # def update_keyboard_movement(self):
-      
+      self.atributes_font = pygame.font.SysFont('verdana',14)      
 
    def draw(self,screen,items):
        #clearing
@@ -100,7 +92,7 @@ class gameInterface(object):
        self.menubar_screen.surface.blit(self.menubar,(0,0))
        #self.minimap_screen.surface.blit(self.minimap,(0,0))
        self.sidebar_screen.surface.blit(self.sidebar,(0,0))
-       self.sidebar_screen.surface.blit(self.sidebar_bott,(0,700))
+       self.sidebar_screen.surface.blit(self.sidebar_bott,(0,self.parameters["resolution"][1]-300))
        #screen.blit(self.menubar,(0,0))
        #screen.blit(self.minimap,(833,0))
        #screen.blit(self.sidebar,(833,265))

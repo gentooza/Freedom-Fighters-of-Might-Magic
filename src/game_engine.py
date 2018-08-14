@@ -26,7 +26,6 @@ import pygame
 #from pygame.sprite import Sprite
 from pygame.locals import *
 
-import paths
 import gummworld2
 from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
@@ -62,6 +61,8 @@ class gameEngine(Engine):
         self.gameSounds.playworld(True,0.6)
         #setting parameters
         resolution = Vec2d(parameters['resolution'])
+        
+        self.parameters = parameters
         if(parameters['fullscreen']):
            flags = pygame.FULLSCREEN
         else:
@@ -97,7 +98,7 @@ class gameEngine(Engine):
         #engine initialization
         #   camera target: our avatar
         #Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
-        Engine.__init__(self, caption=parameters['strcaption'],camera_target= self.avatar,resolution=resolution, display_flags=flags,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
+        Engine.__init__(self, caption=parameters['strcaption'],camera_target= self.avatar,resolution=resolution, display_flags=flags,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, self.parameters["resolution"][0]-183, self.parameters["resolution"][1]-27))
         # Conserve CPU.
         State.clock.use_wait = True
 
@@ -207,7 +208,7 @@ class gameEngine(Engine):
         State.clock.schedule_interval(State.hud.update, 1.0)
      
         #game interface!
-        self.interface = game_interface.gameInterface(State.screen)
+        self.interface = game_interface.gameInterface(State.screen, self.parameters)
         #populating game interface
         self.populating_interface()
     
