@@ -19,14 +19,13 @@
 
 """camera.py - Camera module for Gummworld2."""
 
+from gummworld2 import State, Vec2d, geometry
+
+
 __version__ = '$Id: camera.py 430 2013-09-04 01:48:52Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
-
 __all__ = ['Camera']
-
-
-from gummworld2 import State, Vec2d, geometry
 
 
 class Camera(object):
@@ -255,7 +254,7 @@ class Camera(object):
         """Convert coordinates from screen space to world space.
         """
         camera = self.target.position
-        ## ?? this should be relative to subsurface ??
+        # ?? this should be relative to subsurface ??
         return xy + camera - self.abs_screen_center
     
     def state_restored(self, prev):
