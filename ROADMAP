@@ -1,16 +1,42 @@
+FINAL
+-----
+- fun
+- easy to code and understand
+- plugins framework for modifications
+- robust
+... :-D
+
+
 V0.0.7 ALPHA
----------------------
+------------
 map:
 - add new terrains
 - it's possible to insert collision layer as objects with transparency? (i.e: forest and mountains with 3D effect)
+
 game interface:
-- new game interface with pgu library integration
-- new buttons
 - new hero popup
 - new basic popup for attack event
 - drop support for pygbutton and custom popups
+
 game:
 - work in pathfinding A*algorithm, it has bugs, and need to be speeded up
+
+V0.0.61 ALPHA
+---------------------
+robustness:
+- BUG: bad full screen when playing in a two monitors computer
+- robust way to understand how tiles work in this engine, and set easiest tools (engine agnostic) for movements, placing objects, etc.
+- speed up frame rate
+- upgrade engine
+- game configration saved to file, and loadable.
+
+ui:
+- everything well positioned
+- better bottons and controls, skins, integration between libraries, etc.
+
+code:
+- cleaning a bit, place code in a better easy way to work
+- clean and organize better code around engine
 
 
 
