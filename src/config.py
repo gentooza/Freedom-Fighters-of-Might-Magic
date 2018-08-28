@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with Freedom Fighters of Might & Magic.  If not, see <https://www.gnu.org/licenses/>.
 '''
 import pygame
+import subprocess
 
 
 class Config_Manager:
@@ -83,9 +84,15 @@ class Config_Manager:
         myConfig_file.close()
         
     def initResolution(self,config_file):
-        infoObject = pygame.display.Info()
-        width = infoObject.current_w
-        height = infoObject.current_h
+        res = subprocess.run("./src/tools/activescreen", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if(res.returncode == 0):
+          wh = res.stdout.split(b' ')
+          width = int(wh[0])
+          height = int(wh[1])
+        else:
+          infoObject = pygame.display.Info()
+          width = infoObject.current_w
+          height = infoObject.current_h
         txtResolution = "resolution={}x{}\n".format(width,height)
         config_file.write(txtResolution)
         resolution = (width,height)
