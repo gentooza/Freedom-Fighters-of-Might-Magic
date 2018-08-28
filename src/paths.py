@@ -34,6 +34,7 @@ progdir = os.path.dirname(progname)
 sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src')))
 sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src','gamelib')))
 sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src','pgu')))
+sys.path.insert(0, os.path.normpath(os.path.join(progdir,'src','AI')))
 
 from gummworld2 import data
 

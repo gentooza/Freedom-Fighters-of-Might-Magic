@@ -29,11 +29,12 @@ from pygame.locals import *
 import gummworld2
 from gummworld2 import Engine, Vec2d, TiledMap, data, State, BasicMapRenderer, toolkit, geometry
 
+from AI import path_finding
+
 import utils
 import objects
 import game_interface
 import ffmm_spatialhash
-import path_finding
 import game_dynamics
 import pygbutton
 import sounds
