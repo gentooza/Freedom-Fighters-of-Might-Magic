@@ -19,6 +19,7 @@ try:
     import sys
     import os
     import pygame
+    from gummworld2 import State
     
 except ImportError as err:
 	print("couldn't load module. %s" % (err))

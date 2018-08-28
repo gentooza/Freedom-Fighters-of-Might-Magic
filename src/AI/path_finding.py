@@ -141,7 +141,8 @@ class path():
     
        #destination
        #pos = State.camera.screen_to_world(pos)
-       final_cell = cell(world.index_at(pos[0],pos[1]),None)
+       ##final_cell = cell(world.index_at(pos[0],pos[1]),None)
+       final_cell = cell(world.get_cell_id(pos[0], pos[1]),None)
        #last step is attack?
        #attack = False
        #for creature in avatars_layer:
@@ -151,7 +152,8 @@ class path():
        #NOT IMPLEMENTED        
        if(final_cell.id == None):
           return;
-       row,col = world.get_cell_grid(final_cell.id)
+       #row,col = world.get_cell_grid(final_cell.id)
+       row,col = world.get_grid_by_worldcoordinates(pos[0],pos[1]) 
        if(collision_layer.layer.content2D[row][col] != 0):
           return None,None
        #origin

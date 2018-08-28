@@ -28,7 +28,7 @@ import pygame
 from pygame.locals import Rect
 
 import gummworld2
-from gummworld2 import SpatialHash
+from gummworld2 import SpatialHash, State
 
 class game_SpatialHash(SpatialHash):
    
@@ -39,7 +39,10 @@ class game_SpatialHash(SpatialHash):
         return self.get_cell(cell_id)
         
     def get_grid_by_worldcoordinates(self,x,y):
-        cell = State.world.index_at(x,y)
-        row,col = State.world.get_cell_grid(cell)
+        #cell = State.world.index_at(x,y)
+        #row,col = State.world.get_cell_grid(cell)        
+        #return row,col 
+        row,col = self.get_cell_id(x, y)
+        return  row,col
+
         
-        return row,col         
