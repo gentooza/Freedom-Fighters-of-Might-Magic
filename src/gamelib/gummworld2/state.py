@@ -33,7 +33,7 @@ __author__ = 'Gummbum, (c) 2011-2014'
 __all__ = ['states', 'State']
 
 
-## The default attributes that are saved and restored.
+# The default attributes that are saved and restored.
 _default_attrs = [
     'world',
     'world_type',
@@ -41,8 +41,8 @@ _default_attrs = [
     'camera',
 ]
 
-## The default attributes that are saved and restored when the name argument is
-## 'init'.
+# The default attributes that are saved and restored when the name argument is
+# 'init'.
 _init_attrs = [
     'screen', 'world', 'world_type',
     'camera', 'map',
@@ -83,7 +83,7 @@ class State(object):
     
     name = 'init'               # name of initial saved state
     
-    ## core objects
+    # core objects
     
     screen = None               # Screen
     world = None                # model.World
@@ -98,16 +98,16 @@ class State(object):
 
     hud = None                  # Heads Up Display
     
-    ## game settings
+    # game settings
     
     speed = 4                   # an arbitrary speed constant
     
-    ## map editor settings
+    # map editor settings
     
     show_grid = False
     show_labels = False
     
-    ## static save/restore methods
+    # static save/restore methods
     
     # These are initialized to sane values for the bare library. You may modify
     # these for your own purposes.

@@ -120,15 +120,15 @@ does not. The GameClock class is purely Python and should be compatible with
 other Python-based multi-media and game development libraries.
 """
 
+import functools
+import time
+
+
 __version__ = '$Id: gameclock.py 428 2013-08-28 05:43:47Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
 
 __all__ = ['GameClock']
-
-
-import functools
-import time
 
 
 class _IntervalItem(object):
@@ -252,9 +252,9 @@ class GameClock(object):
         update_interval = self._update_interval
         game_time = self._game_time
         if real_time >= self._next_update:
-            ## FIX: Commented code is a variable timestep. Very bad on underpowered CPUs,
-            ## and generally prone to "losing time".
-            ## self.dt_update = real_time - self._last_update_real
+            # FIX: Commented code is a variable timestep. Very bad on underpowered CPUs,
+            # and generally prone to "losing time".
+            # self.dt_update = real_time - self._last_update_real
             self.dt_update = update_interval  # fixed timestep: good
             self._last_update_real = real_time
             game_time += update_interval
@@ -430,7 +430,7 @@ class GameClock(object):
 
 if __name__ == '__main__':
     import pygame
-    from pygame.locals import *
+    from pygame import *
     
     class Game(object):
         

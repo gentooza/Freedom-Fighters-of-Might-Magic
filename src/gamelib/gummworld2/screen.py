@@ -19,18 +19,18 @@
 
 """screen.py - Yer basic display class for Gummworld2."""
 
+import pygame
+
+if __name__ == '__main__':
+    import paths
+
+from gummworld2 import State, Vec2d
+
+
 __version__ = '$Id: screen.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
 __all__ = ['View', 'Screen']
-
-
-import pygame
-
-if __name__ == '__main__':
-    from . import paths
-
-from gummworld2 import State, Vec2d
 
 
 class View(object):

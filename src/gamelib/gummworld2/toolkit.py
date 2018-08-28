@@ -19,27 +19,33 @@
 
 """toolkit.py - Some helper tools for Gummworld2."""
 
+import os
+import re
+import sys
+import urllib
+
+import pygame
+from pygame import Color
+
+from gummworld2 import State, BasicLayer, Vec2d
+from gummworld2 import data, hudlight
+from gummworld2.geometry import RectGeometry, LineGeometry, PolyGeometry, CircleGeometry
+
+
 __version__ = '$Id: toolkit.py 418 2013-08-19 14:38:28Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
 __all__ = [
     'IMAGE_FILE_EXTENSIONS', 'Struct', 'Tilesheet',
-    'make_hud', 'make_tiles', 'make_tiles2',
-    'load_entities', 'export_world', 'import_world',
-    'load_tilesheet', 'get_tilesheet_info', 'put_tilesheet_info',
+    'make_default_hud', 'HUD_THEMES',
+    'make_tiles', 'make_tiles2',
     'get_visible_cell_ids', 'get_objects_in_cell_ids', 'get_object_array', 'draw_object_array',
     'draw_sprite', 'draw_tiles',
     'interpolated_step',
     'get_parallax_tile_range', 'draw_parallax_tile_range', 'draw_parallax_tiles', 'draw_parallax_tiles_of_layer',
-    'X_draw_parallax_tiles',
     'draw_tiles_of_layer', 'draw_labels', 'draw_grid', 'label_font',
 ]
 
-
-import os
-import re
-import sys
-import urllib.request, urllib.parse, urllib.error
 
 if sys.version_info[0] == 3:
     # This is dirty but range can be expensive with large sequences in
@@ -50,16 +56,8 @@ if sys.version_info[0] == 3:
     url_unquote = parse.unquote
     del parse
 else:
-    url_quote = urllib.parse.quote
-    url_unquote = urllib.parse.unquote
-
-import pygame
-from pygame.locals import Color
-
-from gummworld2 import data, State, BasicLayer, Vec2d
-from gummworld2.geometry import RectGeometry, LineGeometry, PolyGeometry, CircleGeometry
-from gummworld2.ui import HUD, Stat, Statf
-
+    url_quote = urllib.quote
+    url_unquote = urllib.unquote
 
 # Filename-matching extensions for image formats that pygame can load.
 IMAGE_FILE_EXTENSIONS = 'gif', 'png', 'jpg', 'jpeg', 'bmp', 'pcx', 'tga', 'tif', 'lbm', 'pbm', 'pgm', 'xpm'
@@ -111,38 +109,113 @@ class Tilesheet(object):
         return info
 
 
-def make_hud(caption=None, visible=True):
-    """Create a HUD with dynamic items. This creates a default hud to serve
-    both as an example, and for an early design and debugging convenience.
+def make_default_hud(caption=None, theme=None, **custom_args):
+    """factory to make a hudlight.HUD with HUD_THEMES and custom themes
+    
+    This factory supports canned HUD_THEMES, custom themes, and permits merging the two.
+    
+    Logic
+        - The starting template is chosen by the theme arg. If theme is invalid, the starting template will be blank.
+        - The starting template will be updated with the custom args, if any.
+        - If no valid theme or custom args were supplied, the 'default' theme will be used.
+    
+    For all the valid args, see class hudlight.HUD. Also see module pygametext.
+    
+    Tip: You can also modify a HUD via its many style methods once it is created.
+    
+    Examples
+    
+        Default theme:
+            make_default_hud()
+            make_default_hud(theme='default')
+        Custom theme:
+            make_default_hud(font_name='fonts/Roboto_Condensed.ttf')
+            make_default_hud(sysfont_name='sans')
+    
+    :param caption: optional static caption
+    :param theme: dict containing keyword args for the HUD constructor; if None, HUD_THEMES['default'] is used
+    :return: hudlight.HUD
     """
-    State.hud = HUD()
-    State.hud.visible = visible
-    next_pos = State.hud.next_pos
-    
-    if caption:
-        State.hud.add('Caption', Stat(next_pos(), caption))
-    
-    State.hud.add('FPS', Statf(next_pos(), 'FPS {:.0f}', callback=lambda: (round(State.clock.fps),)))
-    
-    rect = State.world.rect
-    l, t, r, b = rect.left, rect.top, rect.right, rect.bottom
-    State.hud.add('Bounds', Stat(next_pos(), 'Bounds {}'.format((l, t, r, b))))
-    
-    def get_mouse():
+    def _get_fps():
+        return State.clock.fps
+
+    def _get_mouse():
         s = pygame.mouse.get_pos()
         w = State.camera.screen_to_world(s)
         return s, (int(w.x), int(w.y))
-    State.hud.add('Mouse', Statf(next_pos(), 'Mouse S{} W{}', callback=get_mouse, interval=.1))
 
-    def get_world_pos():
+    def _get_world_pos():
         s = State.camera.world_to_screen(State.camera.position)
         w = State.camera.position
-        # return 'S' + str((int(s.x), int(s.y))) + ' W' + str((int(w.x), int(w.y)))
         return (int(s.x), int(s.y)), (int(w.x), int(w.y))
-    # State.hud.add('Camera', Statf(next_pos(), 'Camera {}', callback=get_world_pos, interval=.1))
-    State.hud.add('Camera', Statf(next_pos(), 'Camera S{} W{}', callback=get_world_pos, interval=.1))
+    theme = HUD_THEMES.get(theme, {}).copy()
+    if custom_args:
+        theme.update(**custom_args)
+    if not theme:
+        theme = HUD_THEMES['default']
+    hud = hudlight.HUD(**theme)
+    if caption:
+        hud.add('__caption', caption)
+    topleft, bottomright = State.world.rect.topleft, State.world.rect.bottomright
+    hud.add('__fps', 'FPS {:.0f}', 0.0, callback=_get_fps)
+    hud.add('__bounds', 'Bounds {}, {}', topleft, bottomright)
+    hud.add('__mouse', 'Mouse S{} W{}', (0, 0), (0, 0), callback=_get_mouse)
+    hud.add('__camera', 'Camera S{} W{}', (0, 0), (0, 0), callback=_get_world_pos)
+    return hud
+HUD_THEMES = dict(
+    # Boogaloo: nice fat font, red fading to blue with yellow outline
+    boogaloo=dict(
+        fontname=data.filepath('font', 'Boogaloo.ttf'),
+        fontsize=26,
+        color='red2',         # foreground color
+        gcolor='deepskyblue',   # gradient color
+        ocolor='yellow',        # outline color
+    ),
+    # Roboto_Condensded: clear thin font, blue fading to yellow with black outline
+    roboto=dict(
+        fontname=data.filepath('font', 'Roboto_Condensed.ttf'),
+        fontsize=24,
+        color='cornflowerblue',   # foreground color
+        gcolor='lightyellow',       # gradient color
+        ocolor='black',             # outline color
+    ),
+    # Bubblegum_Sans: clear, stylish, informal font, red2 fading to orange with yellow outline
+    bubblegum=dict(
+        fontname=data.filepath('font', 'Bubblegum_Sans.ttf'),
+        fontsize=25,
+        color='red2',     # foreground color
+        gcolor='orange1',   # gradient color
+        ocolor='yellow',    # outline color
+    ),
+    # CherryCreamSoda: stylish, informal font, orange fading to purple with purple neon glow
+    cherrycreamsoda=dict(
+        fontname=data.filepath('font', 'CherryCreamSoda.ttf'),
+        fontsize=25,
+        color='orange2',      # foreground color
+        gcolor='mediumpurple4', # gradient color
+        ocolor='mediumpurple',  # outline color
+    ),
+    # Vera: thin, formal font, lightblue fading to green4 with dark grey shadow
+    vera=dict(
+        fontname=data.filepath('font', 'Vera.ttf'),
+        fontsize=18,
+        color='lightblue',    # foreground color
+        gcolor='green4',        # gradient color
+        scolor='grey20',        # outline color
+        shadow=(-1, 1),         # shadow projection
+    ),
+    # VeraBD: stylish, informal font, orange fading to purple with purple neon glow
+    verabd=dict(
+        fontname=data.filepath('font', 'VeraBD.ttf'),
+        fontsize=25,
+        color='red2',     # foreground color
+        gcolor='gold',      # gradient color
+        scolor='grey20',    # outline color
+    ),
+)
+HUD_THEMES['default'] = HUD_THEMES['boogaloo']
 
-# make_hud
+# make_default_hud
 
 
 def make_tiles(label=False):
@@ -208,291 +281,6 @@ def make_tiles2():
 # make_tiles2
 
 
-def load_entities(filepath, cls_dict={}):
-    """Load entities via import_world() plugin.
-    
-    The cls_dict argument is a dict of classes to construct when encountering
-    shape data. The following keys are supported: 'rect_cls', 'line_cls',
-    'poly_cls', 'circle_cls'. If any of those keys are missing from cls_dict,
-    the following classes will be used by default: geometry.RectGeometry,
-    geometry.LineGeometry, geometry.PolyGeometry, geometry.CircleGeometry.
-    Classes substituted in this manner must have constructors that are
-    compatible with the default classes.
-    """
-#    file_handle = open(filepath, 'rb')
-    file_handle = open(filepath, 'r')
-    entities, tilesheets = import_world(file_handle, **cls_dict)
-    file_handle.close()
-    return entities, tilesheets
-
-# load_world
-
-
-def export_world(fh, entities):
-    """A sequence-to-text exporter.
-    
-    This function is required by world_editor.py, and possibly other scripts, to
-    export entities to a text file.
-    
-    Geometry classes used by this plugin are: RectGeometry, CircleGeometry, and
-    PolyGeometry.
-    
-    The values saved are those needed for each shape-class's constructor, plus a
-    block of arbitrary user data. The user data is url-encoded.
-    """
-    
-    if not isinstance(entities, (list, tuple)) and not hasattr(entities, '__iter__'):
-        raise pygame.error
-    
-    def quote(unquoted_data):
-        translated_data = []
-        for line in unquoted_data.split('\n'):
-            line = line.rstrip('\r')
-            line = re.sub(r'\\', '/', line)
-            translated_data.append(line)
-        quoted_data = '\n'.join(translated_data)
-        quoted_data = url_quote(quoted_data)
-        return quoted_data
-    
-    for entity in entities:
-        if isinstance(entity, RectGeometry):
-            # format:
-            # rect x y w h
-            # user_data ...
-            x, y = entity.rect.topleft
-            w, h = entity.rect.size
-            user_data = ''
-            if hasattr(entity, 'user_data'):
-                user_data = quote(entity.user_data)
-            fh.write('rect {} {} {} {}\n'.format(x, y, w, h))
-            fh.write('user_data ' + user_data + '\n')
-        elif isinstance(entity, LineGeometry):
-            # format:
-            # rect x y w h
-            # user_data ...
-            x1, y1 = entity.p1
-            x2, y2 = entity.p2
-            posx, posy = entity.position
-            user_data = ''
-            if hasattr(entity, 'user_data'):
-                user_data = quote(entity.user_data)
-            fh.write('line {} {} {} {} {} {}\n'.format(x1, y1, x2, y2, posx, posy))
-            fh.write('user_data ' + user_data + '\n')
-        elif isinstance(entity, CircleGeometry):
-            # format:
-            # circle centerx centery radius
-            # user_data ...
-            x, y = entity.position
-            radius = entity.radius
-            user_data = ''
-            if hasattr(entity, 'user_data'):
-                user_data = quote(entity.user_data)
-            fh.write('circle {} {} {}\n'.format(x, y, radius))
-            fh.write('user_data ' + user_data + '\n')
-        elif isinstance(entity, PolyGeometry):
-            # format:
-            # poly centerx centery rel_x1 rel_y1 rel_x2 rel_y2 rel_x3 rel_y3...
-            # user_data ...
-            #
-            # Note: x and y are relative to the containing rect's topleft.
-            center = entity.rect.center
-            x, y = entity.rect.topleft
-            user_data = ''
-            if hasattr(entity, 'user_data'):
-                user_data = quote(entity.user_data)
-            fh.write('poly')
-            fh.write(' {} {}'.format(center))
-            for x1, y1 in entity.points:
-                fh.write(' {} {}'.format(x1 - x, y1 - y))
-            fh.write('\n')
-            fh.write('user_data ' + user_data + '\n')
-        else:
-            (pygame.error, 'unsupported type: ' + entity.__class__.__name__)
-    
-# export_world
-
-
-def import_world(
-        fh, rect_cls=RectGeometry, line_cls=LineGeometry,
-        poly_cls=PolyGeometry, circle_cls=CircleGeometry):
-    """A world entity importer.
-    
-    This function is required by world_editor.py, and possibly other scripts, to
-    import world entities from a text file. It understands the format of files
-    created by export_world().
-    
-    Geometry classes used by this function to create shape objects are specified
-    by the rect_cls, line_cls, poly_cls, and circle_cls arguments. The
-    constructor parameters must have the same signature as geometry.RectGeometry,
-    et al.
-    
-    The values imported are those needed for each shape-class's constructor,
-    plus a block of arbitrary user data which will be placed in the shape
-    instance's user_data attribute.
-    
-    The user_data is also parsed for tilesheet info. Tilesets are loaded and
-    returned as a dict of toolkit.Tilesheet, keyed by relative path to the
-    image file.
-    """
-    
-    if not issubclass(rect_cls, RectGeometry):
-        raise pygame.error
-    if not issubclass(line_cls, LineGeometry):
-        raise pygame.error
-    if not issubclass(poly_cls, PolyGeometry):
-        raise pygame.error
-    if not issubclass(circle_cls, CircleGeometry):
-        raise pygame.error
-    
-    entities = []
-    tilesheets = {}
-    
-    line_num = 0
-    for line in fh:
-        line_num += 1
-        line = line.rstrip('\r\n')
-        parts = line.split(' ')
-        if len(parts) < 1:
-            continue
-        what = parts[0]
-        if what == 'user_data':
-            # User data format:
-            # user_data url_encoded_string
-            user_data = []
-            # Unquote the user_data string and split it into lines.
-            lines = url_unquote(' '.join(parts[1:])).split('\n')
-            # Scan each line for tile info, load the tilesheets, and populate the
-            # entity's user_data attribute.
-            for tile_info in lines:
-                # Split into space-delimited tokens.
-                parts = tile_info.split(' ')
-                if parts[0] == 'tile':
-                    # Process the tile info entry. Format is:
-                    # 0: tile
-                    # 1: tile_id
-                    # 2..end: relpath_of_image
-                    file_path = ' '.join(parts[2:])
-                    file_path = os.path.join(*file_path.split('/'))
-                    if file_path not in tilesheets:
-                        tilesheet = load_tilesheet(file_path)
-                        tilesheets[file_path] = tilesheet
-                    # Join the parts and append to user_data.
-                    tile_info = ' '.join(parts[0:2] + [file_path])
-                user_data.append(tile_info)
-            entity.user_data = '\n'.join(user_data)
-        elif what == 'rect':
-            # Rect format:
-            # rect x y w h
-            x, y = int(parts[1]), int(parts[2])
-            w, h = int(parts[3]), int(parts[4])
-            entity = rect_cls(x, y, w, h)
-            entities.append(entity)
-        elif what == 'line':
-            # Line format:
-            # line x1 y1 x2 y2 posx posy
-            x1, y1 = int(parts[1]), int(parts[2])
-            x2, y2 = int(parts[3]), int(parts[4])
-            pos = int(parts[5]), int(parts[6])
-            entity = line_cls(x1, y1, x2, y2, pos)
-            entities.append(entity)
-        elif what == 'circle':
-            # Circle format:
-            # circle centerx centery radius
-            x, y = int(parts[1]), int(parts[2])
-            radius = float(parts[3])
-            entity = circle_cls((x, y), radius)
-            entities.append(entity)
-        elif what == 'poly':
-            # Polygon format:
-            # poly centerx centery rel_x1 rel_y1 rel_x2 rel_y2 rel_x3 rel_y3...
-            #
-            # Note: x and y are relative to the containing rect's topleft.
-            center = int(parts[1]), int(parts[2])
-            points = []
-            for i in range(3, len(parts), 2):
-                points.append((int(parts[i]), int(parts[i + 1])))
-            entity = poly_cls(points, center)
-            entities.append(entity)
-        else:
-            raise pygame.error
-        
-    return entities, tilesheets
-    
-# import_world
-    
-
-def load_tilesheet(file_path):
-    """Load a tilesheet. A toolkit.Tilesheet containing tilesheet info is
-    returned.
-    
-    The file_path argument is the path to the image file. If file_path is a
-    relative path, it must exist relative to data.data_dir (see the
-    gummworld2.data module). If file_path.tilesheet exists it will be used to
-    size the tiles; otherwise the defaults (0,0,32,32,0,0) will be used.
-    """
-    # Make sure we have an image file type (check file extension).
-    if not os.path.isabs(file_path):
-        file_path = os.path.join(data.data_dir, file_path)
-    junk, ext = os.path.splitext(file_path)
-    ext = ext.lstrip('.')
-    if ext.lower() not in IMAGE_FILE_EXTENSIONS:
-        # hmm, self will blow up. I must have copied this out of map_editor.py...
-        # self.gui_alert('Unsupported image file type: ' + ext)
-        return
-    # Load the image and tilesheet dimensions.
-    image = pygame.image.load(file_path)
-    values = [int(s) for s in get_tilesheet_info(file_path)]
-    margin = Vec2d(values[0:2])
-    tile_size = Vec2d(values[2:4])
-    spacing = Vec2d(values[4:6])
-    rects = []
-    # Carve up the tile sheet, working in margin and spacing offsets.
-    w, h = image.get_size()
-    tx, ty = tile_size
-    mx, my = margin
-    sx, sy = spacing
-    nx, ny = w // tx, h // ty
-    for y in range(ny):
-        for x in range(nx):
-            rx = mx + x * (tx + sx)
-            ry = my + y * (ty + sy)
-            rects.append(pygame.Rect(rx, ry, tx, ty))
-    # Make a tilesheet.
-    tilesheet = Tilesheet(file_path, image, margin, tile_size, spacing, rects)
-    return tilesheet
-
-
-def get_tilesheet_info(tilesheet_path):
-    """Get the tilesheet meta data from file if it exists.
-    """
-    meta_file = tilesheet_path + '.tilesheet'
-    values = ['0', '0', '32', '32', '0', '0']
-    try:
-        f = open(meta_file)
-        line = f.read().strip('\r\n')
-        parts = line.split(' ')
-        if len(parts) == 6:
-            values[:] = parts
-    except:
-        pass
-    else:
-        f.close()
-    return values
-
-
-def put_tilesheet_info(tilesheet_path, tilesheet_values):
-    """Put the tilesheet meta data to file.
-    """
-    meta_file = tilesheet_path + '.tilesheet'
-    try:
-        f = open(meta_file, 'wb')
-        f.write(' '.join([str(v) for v in tilesheet_values]) + '\n')
-    except:
-        pass
-    else:
-        f.close()
-
-
 def get_visible_cell_ids(camera, map_, max_speed=10):
     """Return a list of the map's cell IDs that would be visible to the camera.
     This function is mainly for SuperMap, which needs to specify the map.
@@ -523,7 +311,7 @@ def get_visible_cell_ids(camera, map_, max_speed=10):
     query_rect = camera.rect.inflate(max_speed * 2, max_speed * 2)
     for layer in map_.layers:
         if layer.visible:
-            cell_ids.append(layer.objects.intersect_indices(query_rect))
+            cell_ids.append(layer.objects.intersect_cell_ids(query_rect))
         else:
             cell_ids.append(empty_list)
     return cell_ids
@@ -548,11 +336,13 @@ def get_objects_in_cell_ids(map_, cell_ids_per_layer):
     """
     objects_per_layer = []
     for layeri, cell_ids in enumerate(cell_ids_per_layer):
-        get_cell = map_.layers[layeri].objects.get_cell
+        # get_cell = map_.layers[layeri].objects.get_cell
+        buckets = map_.layers[layeri].objects.buckets
         objects = set()
         objects_update = objects.update
         for cell_id in cell_ids:
-            objects_update(get_cell(cell_id))
+            if cell_id in buckets:
+                objects_update(buckets[cell_id])
         objects_per_layer.append(list(objects))
     return objects_per_layer
 
@@ -578,7 +368,7 @@ def get_object_array(max_speed=10):
     for layer in State.map.layers:
         if layer.visible:
             objects_per_layer.append(
-                layer.objects.intersect_objects(query_rect))
+                layer.objects.intersect_entities(query_rect))
         else:
             objects_per_layer.append(empty_list)
     return objects_per_layer
@@ -672,7 +462,7 @@ def interpolated_step(pos, step, interp):
 # interpolated_step
 
 
-## EXPERIMENTAL: not working quite right
+# EXPERIMENTAL: not working quite right
 #def get_parallax_tile_range(cam, map, layer, parallax, orig='bottomleft'):
 def get_parallax_tile_range(cam, map, layer, parallax, orig='center'):
     # Compute the camera center for this layer's parallax.
@@ -698,7 +488,7 @@ def get_parallax_tile_range(cam, map, layer, parallax, orig='center'):
     return (left, top, right, bottom), cam_rect
 
 
-## EXPERIMENTAL: not working quite right
+# EXPERIMENTAL: not working quite right
 def draw_parallax_tile_range(layer, tile_range, pax_rect):
     x, y, r, b = tile_range
     tw, th = layer.tile_width, layer.tile_height
@@ -707,9 +497,9 @@ def draw_parallax_tile_range(layer, tile_range, pax_rect):
     X_draw_parallax_tiles(layer, tiles, pax_rect)
 
 
-## EXPERIMENTAL: not working quite right
+# EXPERIMENTAL: not working quite right
 def X_draw_parallax_tiles(layer, tiles, pax_rect, view=None):
-    ## DEPRECATED
+    # DEPRECATED
     parallax_cam_topleft = Vec2d(pax_rect.topleft)
     if not view:
         view = State.camera
@@ -722,7 +512,7 @@ def X_draw_parallax_tiles(layer, tiles, pax_rect, view=None):
             blit(s.image, r.topleft - abs_offset)
 
 
-## EXPERIMENTAL: not working quite right
+# EXPERIMENTAL: not working quite right
 def draw_parallax_tiles(maps, view):
     """maps is a list of maps
 
@@ -757,14 +547,14 @@ def draw_parallax_tiles(maps, view):
                     blit(tile.image, r.topleft)
 
 
-## EXPERIMENTAL: not working quite right
+# EXPERIMENTAL: not working quite right
 def draw_parallax_tiles_of_layer(cam, map, layer, parallax=(1.0, 1.0)):
     if layer.visible:
         tile_range, pax_rect = get_parallax_tile_range(cam, map, layer, parallax)
         draw_parallax_tile_range(layer, tile_range, pax_rect)
 
 
-## This is the version used in Fractured Soul.
+# This is the version used in Fractured Soul.
 def draw_tiles_of_layer(layeri, pallax_factor_x=1.0, pallax_factor_y=1.0):
     """Draw visible tiles.
     
@@ -801,7 +591,7 @@ def draw_tiles_of_layer(layeri, pallax_factor_x=1.0, pallax_factor_y=1.0):
                     blit(s.image, (rect.x - (cx * pallax_factor_x), rect.y - (cy * pallax_factor_y)))
     else:
         if __debug__ and hasattr(State, 'silence_draw_tiles'):
-            print(("ERROR: layer {0} not defined int map!".format(layeri)))
+            print("ERROR: layer {0} not defined int map!".format(layeri))
 
 
 def draw_labels(cache_dict, layeri=0, color=pygame.Color('black')):
@@ -820,8 +610,8 @@ def draw_labels(cache_dict, layeri=0, color=pygame.Color('black')):
     x1 = tw - (left - left // tw * tw)
     y1 = th - (top - top // th * th)
     #
-    for x in range(left - tw, left + width + tw, tw):
-        for y in range(top - th, top + height + th, th):
+    for x in xrange(left - tw, left + width + tw, tw):
+        for y in xrange(top - th, top + height + th, th):
             name = (x - tw) // tw + 1, (y - th) // th + 1
             sx, sy = x - left - tw, y - top - th
             label = cache_dict.get(name, None)
@@ -870,10 +660,316 @@ def draw_grid(grid_cache, layeri=0, color=pygame.Color('blue'), alpha=33):
     #
     layer = State.map.layers[layeri]
     x1 = layer.tile_width - (left - left // layer.tile_width * layer.tile_width)
-    for x in range(x1, width, layer.tile_width):
+    for x in xrange(x1, width, layer.tile_width):
         blit(vline, (x, 0))
     y1 = layer.tile_height - (top - top // layer.tile_height * layer.tile_height)
-    for y in range(y1, height, layer.tile_height):
+    for y in xrange(y1, height, layer.tile_height):
         blit(hline, (0, y))
 
 # draw_grid
+
+
+# def load_entities(filepath, cls_dict={}):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """Load entities via import_world() plugin.
+#
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#
+#     The cls_dict argument is a dict of classes to construct when encountering
+#     shape data. The following keys are supported: 'rect_cls', 'line_cls',
+#     'poly_cls', 'circle_cls'. If any of those keys are missing from cls_dict,
+#     the following classes will be used by default: geometry.RectGeometry,
+#     geometry.LineGeometry, geometry.PolyGeometry, geometry.CircleGeometry.
+#     Classes substituted in this manner must have constructors that are
+#     compatible with the default classes.
+#     """
+#     #    file_handle = open(filepath, 'rb')
+#     file_handle = open(filepath, 'r')
+#     entities, tilesheets = import_world(file_handle, **cls_dict)
+#     file_handle.close()
+#     return entities, tilesheets
+#
+#
+# # load_world
+#
+#
+# def export_world(fh, entities):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """A sequence-to-text exporter.
+#
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#
+#     This function is required by world_editor.py, and possibly other scripts, to
+#     export entities to a text file.
+#
+#     Geometry classes used by this plugin are: RectGeometry, CircleGeometry, and
+#     PolyGeometry.
+#
+#     The values saved are those needed for each shape-class's constructor, plus a
+#     block of arbitrary user data. The user data is url-encoded.
+#     """
+#
+#     if not isinstance(entities, (list, tuple)) and not hasattr(entities, '__iter__'):
+#         raise (pygame.error, 'entities must be iterable')
+#
+#     def quote(unquoted_data):
+#         translated_data = []
+#         for line in unquoted_data.split('\n'):
+#             line = line.rstrip('\r')
+#             line = re.sub(r'\\', '/', line)
+#             translated_data.append(line)
+#         quoted_data = '\n'.join(translated_data)
+#         quoted_data = url_quote(quoted_data)
+#         return quoted_data
+#
+#     for entity in entities:
+#         if isinstance(entity, RectGeometry):
+#             # format:
+#             # rect x y w h
+#             # user_data ...
+#             x, y = entity.rect.topleft
+#             w, h = entity.rect.size
+#             user_data = ''
+#             if hasattr(entity, 'user_data'):
+#                 user_data = quote(entity.user_data)
+#             fh.write('rect {} {} {} {}\n'.format(x, y, w, h))
+#             fh.write('user_data ' + user_data + '\n')
+#         elif isinstance(entity, LineGeometry):
+#             # format:
+#             # rect x y w h
+#             # user_data ...
+#             x1, y1 = entity.p1
+#             x2, y2 = entity.p2
+#             posx, posy = entity.position
+#             user_data = ''
+#             if hasattr(entity, 'user_data'):
+#                 user_data = quote(entity.user_data)
+#             fh.write('line {} {} {} {} {} {}\n'.format(x1, y1, x2, y2, posx, posy))
+#             fh.write('user_data ' + user_data + '\n')
+#         elif isinstance(entity, CircleGeometry):
+#             # format:
+#             # circle centerx centery radius
+#             # user_data ...
+#             x, y = entity.position
+#             radius = entity.radius
+#             user_data = ''
+#             if hasattr(entity, 'user_data'):
+#                 user_data = quote(entity.user_data)
+#             fh.write('circle {} {} {}\n'.format(x, y, radius))
+#             fh.write('user_data ' + user_data + '\n')
+#         elif isinstance(entity, PolyGeometry):
+#             # format:
+#             # poly centerx centery rel_x1 rel_y1 rel_x2 rel_y2 rel_x3 rel_y3...
+#             # user_data ...
+#             #
+#             # Note: x and y are relative to the containing rect's topleft.
+#             center = entity.rect.center
+#             x, y = entity.rect.topleft
+#             user_data = ''
+#             if hasattr(entity, 'user_data'):
+#                 user_data = quote(entity.user_data)
+#             fh.write('poly')
+#             fh.write(' {} {}'.format(center))
+#             for x1, y1 in entity.points:
+#                 fh.write(' {} {}'.format(x1 - x, y1 - y))
+#             fh.write('\n')
+#             fh.write('user_data ' + user_data + '\n')
+#         else:
+#             (pygame.error, 'unsupported type: ' + entity.__class__.__name__)
+#
+#
+# # export_world
+#
+#
+# def import_world(
+#         fh, rect_cls=RectGeometry, line_cls=LineGeometry,
+#         poly_cls=PolyGeometry, circle_cls=CircleGeometry):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """A world entity importer.
+#
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#
+#     This function is required by world_editor.py, and possibly other scripts, to
+#     import world entities from a text file. It understands the format of files
+#     created by export_world().
+#
+#     Geometry classes used by this function to create shape objects are specified
+#     by the rect_cls, line_cls, poly_cls, and circle_cls arguments. The
+#     constructor parameters must have the same signature as geometry.RectGeometry,
+#     et al.
+#
+#     The values imported are those needed for each shape-class's constructor,
+#     plus a block of arbitrary user data which will be placed in the shape
+#     instance's user_data attribute.
+#
+#     The user_data is also parsed for tilesheet info. Tilesets are loaded and
+#     returned as a dict of toolkit.Tilesheet, keyed by relative path to the
+#     image file.
+#     """
+#
+#     if not issubclass(rect_cls, RectGeometry):
+#         raise (pygame.error, 'argument "rect_cls" must be a subclass of geometry.RectGeometry')
+#     if not issubclass(line_cls, LineGeometry):
+#         raise (pygame.error, 'argument "line_cls" must be a subclass of geometry.LineGeometry')
+#     if not issubclass(poly_cls, PolyGeometry):
+#         raise (pygame.error, 'argument "poly_cls" must be a subclass of geometry.PolyGeometry')
+#     if not issubclass(circle_cls, CircleGeometry):
+#         raise (pygame.error, 'argument "circle_cls" must be a subclass of geometry.CircleGeometry')
+#
+#     entities = []
+#     tilesheets = {}
+#
+#     line_num = 0
+#     for line in fh:
+#         line_num += 1
+#         line = line.rstrip('\r\n')
+#         parts = line.split(' ')
+#         if len(parts) < 1:
+#             continue
+#         what = parts[0]
+#         if what == 'user_data':
+#             # User data format:
+#             # user_data url_encoded_string
+#             user_data = []
+#             # Unquote the user_data string and split it into lines.
+#             lines = url_unquote(' '.join(parts[1:])).split('\n')
+#             # Scan each line for tile info, load the tilesheets, and populate the
+#             # entity's user_data attribute.
+#             for tile_info in lines:
+#                 # Split into space-delimited tokens.
+#                 parts = tile_info.split(' ')
+#                 if parts[0] == 'tile':
+#                     # Process the tile info entry. Format is:
+#                     # 0: tile
+#                     # 1: tile_id
+#                     # 2..end: relpath_of_image
+#                     file_path = ' '.join(parts[2:])
+#                     file_path = os.path.join(*file_path.split('/'))
+#                     if file_path not in tilesheets:
+#                         tilesheet = load_tilesheet(file_path)
+#                         tilesheets[file_path] = tilesheet
+#                     # Join the parts and append to user_data.
+#                     tile_info = ' '.join(parts[0:2] + [file_path])
+#                 user_data.append(tile_info)
+#             entity.user_data = '\n'.join(user_data)
+#         elif what == 'rect':
+#             # Rect format:
+#             # rect x y w h
+#             x, y = int(parts[1]), int(parts[2])
+#             w, h = int(parts[3]), int(parts[4])
+#             entity = rect_cls(x, y, w, h)
+#             entities.append(entity)
+#         elif what == 'line':
+#             # Line format:
+#             # line x1 y1 x2 y2 posx posy
+#             x1, y1 = int(parts[1]), int(parts[2])
+#             x2, y2 = int(parts[3]), int(parts[4])
+#             pos = int(parts[5]), int(parts[6])
+#             entity = line_cls(x1, y1, x2, y2, pos)
+#             entities.append(entity)
+#         elif what == 'circle':
+#             # Circle format:
+#             # circle centerx centery radius
+#             x, y = int(parts[1]), int(parts[2])
+#             radius = float(parts[3])
+#             entity = circle_cls((x, y), radius)
+#             entities.append(entity)
+#         elif what == 'poly':
+#             # Polygon format:
+#             # poly centerx centery rel_x1 rel_y1 rel_x2 rel_y2 rel_x3 rel_y3...
+#             #
+#             # Note: x and y are relative to the containing rect's topleft.
+#             center = int(parts[1]), int(parts[2])
+#             points = []
+#             for i in range(3, len(parts), 2):
+#                 points.append((int(parts[i]), int(parts[i + 1])))
+#             entity = poly_cls(points, center)
+#             entities.append(entity)
+#         else:
+#             raise (pygame.error, 'line {}: keyword "{}" unexpected'.format(line_num, what))
+#
+#     return entities, tilesheets
+#
+#
+# # import_world
+#
+#
+# def load_tilesheet(file_path):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """Load a tilesheet. A toolkit.Tilesheet containing tilesheet info is
+#     returned.
+#
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#
+#     The file_path argument is the path to the image file. If file_path is a
+#     relative path, it must exist relative to data.data_dir (see the
+#     gummworld2.data module). If file_path.tilesheet exists it will be used to
+#     size the tiles; otherwise the defaults (0,0,32,32,0,0) will be used.
+#     """
+#     # Make sure we have an image file type (check file extension).
+#     if not os.path.isabs(file_path):
+#         file_path = os.path.join(data.data_dir, file_path)
+#     junk, ext = os.path.splitext(file_path)
+#     ext = ext.lstrip('.')
+#     if ext.lower() not in IMAGE_FILE_EXTENSIONS:
+#         # hmm, self will blow up. I must have copied this out of map_editor.py...
+#         # self.gui_alert('Unsupported image file type: ' + ext)
+#         return
+#     # Load the image and tilesheet dimensions.
+#     image = pygame.image.load(file_path)
+#     values = [int(s) for s in get_tilesheet_info(file_path)]
+#     margin = Vec2d(values[0:2])
+#     tile_size = Vec2d(values[2:4])
+#     spacing = Vec2d(values[4:6])
+#     rects = []
+#     # Carve up the tile sheet, working in margin and spacing offsets.
+#     w, h = image.get_size()
+#     tx, ty = tile_size
+#     mx, my = margin
+#     sx, sy = spacing
+#     nx, ny = w // tx, h // ty
+#     for y in range(ny):
+#         for x in range(nx):
+#             rx = mx + x * (tx + sx)
+#             ry = my + y * (ty + sy)
+#             rects.append(pygame.Rect(rx, ry, tx, ty))
+#     # Make a tilesheet.
+#     tilesheet = Tilesheet(file_path, image, margin, tile_size, spacing, rects)
+#     return tilesheet
+#
+#
+# def get_tilesheet_info(tilesheet_path):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """Get the tilesheet meta data from file if it exists.
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#     """
+#     meta_file = tilesheet_path + '.tilesheet'
+#     values = ['0', '0', '32', '32', '0', '0']
+#     try:
+#         f = open(meta_file)
+#         line = f.read().strip('\r\n')
+#         parts = line.split(' ')
+#         if len(parts) == 6:
+#             values[:] = parts
+#     except:
+#         pass
+#     else:
+#         f.close()
+#     return values
+#
+#
+# def put_tilesheet_info(tilesheet_path, tilesheet_values):
+#     # TODO: DEPRECATED: world_editor.py is no longer supported
+#     """Put the tilesheet meta data to file.
+#     TODO: DEPRECATED: world_editor.py is no longer supported
+#     """
+#     meta_file = tilesheet_path + '.tilesheet'
+#     try:
+#         f = open(meta_file, 'wb')
+#         f.write(' '.join([str(v) for v in tilesheet_values]) + '\n')
+#     except:
+#         pass
+#     else:
+#         f.close()
+#
+#

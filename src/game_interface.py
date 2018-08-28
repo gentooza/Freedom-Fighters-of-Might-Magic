@@ -28,7 +28,7 @@ from pygame.locals import *
 
 import paths
 import gummworld2
-from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf, View,SubPixelSurface
+from gummworld2 import context, data, model, geometry, toolkit,Engine, State, TiledMap, BasicMapRenderer, Vec2d, View,SubPixelSurface
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects

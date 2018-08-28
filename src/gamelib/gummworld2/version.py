@@ -25,10 +25,10 @@ __author__ = 'Gummbum, (c) 2011-2014'
 __all__ = ['version', 'vernum']
 
 
-version = '1.0.0'
+version = '2.0.0'
 vernum = tuple([int(s) for s in (version.split('.'))])
 
 
 if __name__ == '__main__':
-    print(('Version {0}'.format(version)))
-    print(('Vernum {0}'.format(vernum)))
+    print('Version {0}'.format(version))
+    print('Vernum {0}'.format(vernum))

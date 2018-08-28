@@ -28,8 +28,7 @@ import pygame
 from pygame.locals import Rect
 
 import gummworld2
-from gummworld2 import *
-
+from gummworld2 import SpatialHash
 
 class game_SpatialHash(SpatialHash):
    

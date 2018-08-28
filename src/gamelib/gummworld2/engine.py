@@ -37,23 +37,22 @@ though not everything created in the constructor is required. See
 Engine.__init__(), Engine.run(), and examples/00_minimum.py for helpful clues.
 """
 
+import pygame
+from pygame import KEYDOWN, KEYUP, MOUSEMOTION, MOUSEBUTTONUP, MOUSEBUTTONDOWN
+from pygame import JOYAXISMOTION, JOYBALLMOTION, JOYHATMOTION, JOYBUTTONUP, JOYBUTTONDOWN
+from pygame import VIDEORESIZE, VIDEOEXPOSE, USEREVENT, QUIT, ACTIVEEVENT
+
+# if __name__ == '__main__':
+#     import paths
+
+from gummworld2 import State, Context, Screen, View, BasicMap, Camera, GameClock
+from gummworld2 import context, model, pygame_utils, state
+
+
 __version__ = '$Id: engine.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
-
 __all__ = ['NO_WORLD', 'SIMPLE_WORLD', 'Engine', 'run']
-
-
-import pygame
-from pygame.locals import *
-
-if __name__ == '__main__':
-    from . import paths
-
-from gummworld2 import (
-    State, Context, Screen, View, BasicMap, Camera, GameClock,
-    context, model, pygame_utils,
-)
 
 
 NO_WORLD = 0
@@ -153,8 +152,8 @@ class Engine(Context):
         
         Context.__init__(self)
         
-        ## If you don't use this engine, then in general you will still want
-        ## to initialize your State objects in the same order you see here.
+        # If you don't use this engine, then in general you will still want
+        # to initialize your State objects in the same order you see here.
         
         self.world_type = world_type
         self.screen = None
@@ -165,7 +164,7 @@ class Engine(Context):
         self.camera_target = camera_target
         self.clock = None
         
-        ## Screen.
+        # Screen.
         if screen_surface:
             if __debug__:
                 print('Engine: Screen(surface=screen_surface)')
@@ -183,7 +182,7 @@ class Engine(Context):
                 print('Engine: falling back on pygame.display.get_surface()')
             self.screen = Screen(surface=pygame.display.get_surface())
         
-        ## BasicMap.
+        # BasicMap.
         if map:
             if __debug__:
                 print('Engine: using pre-made map')
@@ -194,13 +193,13 @@ class Engine(Context):
             self.map = BasicMap(map_size[0], map_size[1], tile_size[0], tile_size[1])
         else:
             if __debug__:
-                print(('Engine: SKIPPING map creation:' +
-                      ' no map, tile_size, or map_size'))
+                print('Engine: SKIPPING map creation:' +
+                      ' no map, tile_size, or map_size')
         
-        ## If you want to use the camera target as a world entity, you have to
-        ## use the right object type. Type checking and exception handling are
-        ## not done. This is to allow flexible initialization of the Engine
-        ## context.
+        # If you want to use the camera target as a world entity, you have to
+        # use the right object type. Type checking and exception handling are
+        # not done. This is to allow flexible initialization of the Engine
+        # context.
         if __debug__ and self.camera_target:
             print('Engine: using pre-made camera target')
         if not self.map:
@@ -224,7 +223,7 @@ class Engine(Context):
                     print('Engine: making camera target Object()')
                 self.camera_target = model.Object()
         
-        ## Create the camera.
+        # Create the camera.
         if any((self.camera_target, camera_view, camera_view_rect)):
             if camera_view:
                 if __debug__:
@@ -243,29 +242,29 @@ class Engine(Context):
             self.camera = Camera(self.camera_target, camera_view)
         else:
             if __debug__:
-                print(('Engine: SKIPPING camera creation:' +
-                      ' no camera target, view, or view rect'))
+                print('Engine: SKIPPING camera creation:' +
+                      ' no camera target, view, or view rect')
         
-        ## Create the clock, specifying callbacks for update() and draw().
+        # Create the clock, specifying callbacks for update() and draw().
         if __debug__:
             print('Engine: creating GameClock')
         self.clock = GameClock(
             update_speed, frame_speed,
             update_callback=self._update, frame_callback=self._draw)
         
-        ## Init joysticks.
+        # Init joysticks.
         if not pygame.joystick.get_init():
             if __debug__:
                 print('Engine: initializing joysticks')
             self._joysticks = pygame_utils.init_joystick()
         self._get_pygame_events = pygame.event.get
         
-        ## Initialize State.
+        # Initialize State.
         if set_state:
             if __debug__:
                 print('Engine: copying my objects to State')
             self.set_state()
- 
+    
     def enter(self):
         """Called when the context is entered.
         
@@ -348,9 +347,7 @@ class Engine(Context):
         for e in self._get_pygame_events():
             typ = e.type
             if typ == KEYDOWN:
-                #removed e.str python3 doesn't like it
-		#by gentooza 2015-04-14
-                self.on_key_down(e.unicode,e.key, e.mod)
+                self.on_key_down(e.unicode, e.key, e.mod)
             elif typ == KEYUP:
                 self.on_key_up(e.key, e.mod)
             elif typ == MOUSEMOTION:
@@ -380,14 +377,14 @@ class Engine(Context):
             elif typ == ACTIVEEVENT:
                 self.on_active_event(e.gain, e.state)
     
-    ## Override an event handler to get specific events.
+    # Override an event handler to get specific events.
     def on_active_event(self, gain, state): pass
     def on_joy_axis_motion(self, joy, axis, value): pass
     def on_joy_ball_motion(self, joy, ball, rel): pass
     def on_joy_button_down(self, joy, button): pass
     def on_joy_button_up(self, joy, button): pass
     def on_joy_hat_motion(self, joy, hat, value): pass
-    def on_key_down(self, key, mod): pass
+    def on_key_down(self, unicode, key, mod): pass
     def on_key_up(self, key, mod): pass
     def on_mouse_button_down(self, pos, button): pass
     def on_mouse_button_up(self, pos, button): pass
@@ -408,101 +405,101 @@ def run(app):
         State.clock.tick()
 
 
-if __name__ == '__main__':
-    ## Multiple "apps", (aka engines, aka levels) and other settings
-    from pygame.locals import *
-    from gamelib import Vec2d, View, toolkit
-    
-    class App(Engine):
-
-        def __init__(self, **kwargs):
-            super(App, self).__init__(**kwargs)
-            toolkit.make_tiles2()
-            self.speed = 3
-            self.movex = 0
-            self.movey = 0
-
-        def update(self):
-            if self.movex or self.movey:
-                State.camera.position += self.movex,self.movey
-            State.camera.update()
-
-        def draw(self):
-            State.camera.interpolate()
-            State.screen.surface.fill(Color('black'))
-            toolkit.draw_tiles()
-            if State.camera.view is not State.screen:
-                pygame.draw.rect(State.screen.surface, (99,99,99),
-                    State.camera.view.parent_rect, 1)
-            pygame.display.flip()
-
-        def on_key_down(self, str, key, mod):
-            if key == K_DOWN:
-                self.movey += self.speed
-            elif key == K_UP:
-                self.movey += -self.speed
-            elif key == K_RIGHT:
-                self.movex += self.speed
-            elif key == K_LEFT:
-                self.movex += -self.speed
-            elif key == K_SPACE:
-                State.running = False
-            elif key == K_ESCAPE:
-                quit()
-
-        def on_key_up(self, key, mod):
-            if key == K_DOWN:
-                self.movey -= self.speed
-            elif key == K_UP:
-                self.movey -= -self.speed
-            elif key == K_RIGHT:
-                self.movex -= self.speed
-            elif key == K_LEFT:
-                self.movex -= -self.speed
-    
-    def make_app(num, **kwargs):
-        name = 'app' + str(num)
-        if name in state.states:
-            State.restore(name)
-            pygame.display.set_caption(State.caption + ' (restored)')
-        else:
-            State.app = App(**kwargs)
-            if num % 2:
-                toolkit.make_tiles()
-            else:
-                toolkit.make_tiles2()
-            State.camera.position = State.camera.screen_center
-            State.caption = kwargs['caption']
-            State.save(name)
-    
-    def make_app1():
-        screen = pygame.display.set_mode(resolution)
-        make_app(1, screen_surface=screen, tile_size=tile_size, map_size=map_size, caption='1:Screen')
-    
-    def make_app2():
-        tile_size = Vec2d(32, 32)
-        view = View(State.screen.surface, Rect(16, 16, *(tile_size * 6)))
-        make_app(2, tile_size=tile_size, map_size=map_size, camera_view=view, caption='2:View+Tilesize')
-    
-    def make_app3():
-        make_app(3, tile_size=tile_size, map_size=map_size, camera_view_rect=Rect(16, 16, *(tile_size * 3)),
-                 caption='3:Viewrect')
-    
-    tile_size = Vec2d(64, 64)
-    map_size = Vec2d(10, 10)
-    resolution = tile_size * 4
-    
-    State.default_attrs.extend(('app', 'caption'))
-    app_num = 0
-    
-    while 1:
-        app_num += 1
-        if app_num > 3:
-            app_num = 1
-        if app_num == 1:
-            make_app1()
-        elif app_num == 2:
-            make_app2()
-        elif app_num == 3:
-            make_app3()
-        State.app.run()
+# if __name__ == '__main__':
+#     # Multiple "apps", (aka engines, aka levels) and other settings
+#     from pygame import *
+#     from gamelib import Vec2d, View, toolkit
+#
+#     class App(Engine):
+#
+#         def __init__(self, **kwargs):
+#             super(App, self).__init__(**kwargs)
+#             toolkit.make_tiles2()
+#             self.speed = 3
+#             self.movex = 0
+#             self.movey = 0
+#
+#         def update(self):
+#             if self.movex or self.movey:
+#                 State.camera.position += self.movex,self.movey
+#             State.camera.update()
+#
+#         def draw(self):
+#             State.camera.interpolate()
+#             State.screen.surface.fill(Color('black'))
+#             toolkit.draw_tiles()
+#             if State.camera.view is not State.screen:
+#                 pygame.draw.rect(State.screen.surface, (99,99,99),
+#                     State.camera.view.parent_rect, 1)
+#             pygame.display.flip()
+#
+#         def on_key_down(self, unicode, key, mod):
+#             if key == K_DOWN:
+#                 self.movey += self.speed
+#             elif key == K_UP:
+#                 self.movey += -self.speed
+#             elif key == K_RIGHT:
+#                 self.movex += self.speed
+#             elif key == K_LEFT:
+#                 self.movex += -self.speed
+#             elif key == K_SPACE:
+#                 State.running = False
+#             elif key == K_ESCAPE:
+#                 quit()
+#
+#         def on_key_up(self, key, mod):
+#             if key == K_DOWN:
+#                 self.movey -= self.speed
+#             elif key == K_UP:
+#                 self.movey -= -self.speed
+#             elif key == K_RIGHT:
+#                 self.movex -= self.speed
+#             elif key == K_LEFT:
+#                 self.movex -= -self.speed
+#
+#     def make_app(num, **kwargs):
+#         name = 'app' + str(num)
+#         if name in state.states:
+#             State.restore(name)
+#             pygame.display.set_caption(State.caption + ' (restored)')
+#         else:
+#             State.app = App(**kwargs)
+#             if num % 2:
+#                 toolkit.make_tiles()
+#             else:
+#                 toolkit.make_tiles2()
+#             State.camera.position = State.camera.screen_center
+#             State.caption = kwargs['caption']
+#             State.save(name)
+#
+#     def make_app1():
+#         screen = pygame.display.set_mode(resolution)
+#         make_app(1, screen_surface=screen, tile_size=tile_size, map_size=map_size, caption='1:Screen')
+#
+#     def make_app2():
+#         tile_size = Vec2d(32, 32)
+#         view = View(State.screen.surface, Rect(16, 16, *(tile_size * 6)))
+#         make_app(2, tile_size=tile_size, map_size=map_size, camera_view=view, caption='2:View+Tilesize')
+#
+#     def make_app3():
+#         make_app(3, tile_size=tile_size, map_size=map_size, camera_view_rect=Rect(16, 16, *(tile_size * 3)),
+#                  caption='3:Viewrect')
+#
+#     tile_size = Vec2d(64, 64)
+#     map_size = Vec2d(10, 10)
+#     resolution = tile_size * 4
+#
+#     State.default_attrs.extend(('app', 'caption'))
+#     app_num = 0
+#
+#     while 1:
+#         app_num += 1
+#         if app_num > 3:
+#             app_num = 1
+#         if app_num == 1:
+#             make_app1()
+#         elif app_num == 2:
+#             make_app2()
+#         elif app_num == 3:
+#             make_app3()
+#         State.app.run()

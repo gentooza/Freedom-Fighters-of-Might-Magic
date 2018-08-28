@@ -36,14 +36,14 @@ Typical usage:
         ... module unit test ...
 """
 
+import os
+import sys
+
 __version__ = '$Id: paths.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
 __all__ = ['progname', 'progdir']
 
-
-import os
-import sys
 
 progname = sys.argv[0]
 progdir = os.path.dirname(progname)

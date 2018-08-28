@@ -17,16 +17,9 @@
 
 try:
     import sys
-    import random
-    import math
     import os
-    import getopt
     import pygame
-    from socket import *
-    from pygame.locals import *
-    import paths
-    import gummworld2
-    from gummworld2 import *
+    
 except ImportError as err:
 	print("couldn't load module. %s" % (err))
 	sys.exit(2)

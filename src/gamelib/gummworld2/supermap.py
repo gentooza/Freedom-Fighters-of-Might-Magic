@@ -19,6 +19,14 @@
 
 """supermap.py - Auto-loading/unloading multiple-maps grid for Gummworld2."""
 
+import os
+
+import pygame
+
+from gummworld2 import State, Vec2d
+from gummworld2.toolkit import get_objects_in_cell_ids
+
+
 __version__ = '$Id: supermap.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
 __author__ = 'Gummbum, (c) 2011-2014'
 
@@ -26,17 +34,7 @@ __all__ = [
     'MapHandler', 'SuperMap',
     'NEIGHBORS', 'BORDERS', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW',
     'DEBUG', 'print_supermap',
-    # 'vadd', 'vsub', 'map_handler_name', 'map_handler_timestamp', 'make_trigger',
-    # 'get_objects_in_cell_ids', 'get_visible_cell_ids',
 ]
-
-
-import os
-
-import pygame
-
-from gummworld2 import State, Vec2d
-from gummworld2.toolkit import get_objects_in_cell_ids
 
 
 NEIGHBORS = (N, NE, E, SE, S, SW, W, NW) = ((0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1))
@@ -50,11 +48,11 @@ def print_supermap(super_map):
     """Print a supermap, its handlers, and each handler's triggers.
     """
     print(super_map)
-    for from_name, map_handler in list(super_map.handlers.items()):
-        print(('  {0}'.format(map_handler)))
+    for from_name, map_handler in super_map.handlers.items():
+        print('  {0}'.format(map_handler))
         for trigger in map_handler.triggers:
             border_name = trigger.border_name(from_name)
-            print(('    {0}: {1}'.format(border_name, trigger)))
+            print('    {0}: {1}'.format(border_name, trigger))
 
 
 def vadd(a, b):
@@ -161,7 +159,7 @@ class MapHandler(object):
             self._load()
             self.rect = pygame.Rect(self.map.rect)
         elif not super_map.get_handler(origin):
-            raise ValueError
+            raise(ValueError, 'must first add origin map to supermap')
         else:
             supermap_rect = super_map.get_handler(origin).rect
             self.rect = pygame.Rect(supermap_rect)
@@ -171,7 +169,7 @@ class MapHandler(object):
             y = self.rect.y + h * offsety
             self.rect.topleft = x, y
         if __debug__ and DEBUG:
-            print(('{0}: rect {1}'.format(self.__class__.__name__, self.rect)))
+            print('{0}: rect {1}'.format(self.__class__.__name__, self.rect))
     
         # Set up triggers.
         name = self.name
@@ -185,15 +183,15 @@ class MapHandler(object):
                         make_trigger(name, border, self.rect, t)
                         self.triggers.append(t)
                         if __debug__ and DEBUG:
-                            print(('{0}: share trigger {1}: {2}'.format(
-                                self.__class__.__name__, BORDERS[border], t)))
+                            print('{0}: share trigger {1}: {2}'.format(
+                                self.__class__.__name__, BORDERS[border], t))
             else:
                 # make the trigger
                 t = make_trigger(name, border, self.rect)
                 self.triggers.append(t)
                 if __debug__ and DEBUG:
-                    print(('{0}: new trigger {1}: {2}'.format(
-                        self.__class__.__name__, BORDERS[border], t)))
+                    print('{0}: new trigger {1}: {2}'.format(
+                        self.__class__.__name__, BORDERS[border], t))
     
     def get_objects(self, map_range):
         """Return a dict of tiles in the specified bounds.
@@ -267,8 +265,8 @@ class MapHandler(object):
         """
         if not self.map:
             if __debug__ and DEBUG:
-                print(('{0}: load map {1}'.format(
-                    self.__class__.__name__, self.name)))
+                print('{0}: load map {1}'.format(
+                    self.__class__.__name__, self.name))
             self.timestamp = pygame.time.get_ticks()
             self.load()
     
@@ -277,8 +275,8 @@ class MapHandler(object):
         """
         if self.map:
             if __debug__ and DEBUG:
-                print(('{0}: unload map {1}'.format(
-                    self.__class__.__name__, self.name)))
+                print('{0}: unload map {1}'.format(
+                    self.__class__.__name__, self.name))
             self.unload()
             self.map = None
             if self.supermap.current == self.name:
@@ -436,8 +434,8 @@ class SuperMap(object):
         is already loaded via a trigger), and its enter() method is called.
         """
         if __debug__ and DEBUG:
-            print(('{0}: current map {1} -> {2}'.format(
-                self.__class__.__name__, self.current, map_handler.name)))
+            print('{0}: current map {1} -> {2}'.format(
+                self.__class__.__name__, self.current, map_handler.name))
         if self.current:
             self.current.exit()
         self.current = map_handler
@@ -451,10 +449,10 @@ class SuperMap(object):
         map_handler is the MapHandler object to add to this SuperMap.
         """
         if __debug__ and DEBUG:
-            print(('{0}: add map {1}'.format(
-                self.__class__.__name__, map_handler)))
+            print('{0}: add map {1}'.format(
+                self.__class__.__name__, map_handler))
         if map_handler.name in self.handlers:
-            raise KeyError
+            raise(KeyError, str(map_handler.name) + ' key exists')
         # Add the map handler to this SuperMap.
         self.handlers[map_handler.name] = map_handler
         
@@ -462,17 +460,17 @@ class SuperMap(object):
         if self.current:
             # If origin already added, init world space for this MapHandler.
             map_handler._set_supermap(self)
-            self.rect.unionall_ip([m.rect for m in list(self.handlers.values())])
+            self.rect.unionall_ip([m.rect for m in self.handlers.values()])
         elif map_handler.name == self.origin:
             # This is the origin MapHandler. We can start intitializing world
             # space...
             self.set_current(map_handler)
             map_handler._set_supermap(self)
             # Init MapHandlers that were added prior to origin the MapHandler.
-            for mh in list(self.handlers.values()):
+            for mh in self.handlers.values():
                 if mh != map_handler:
                     mh._set_supermap(self)
-            self.rect.unionall_ip([m.rect for m in list(self.handlers.values())])
+            self.rect.unionall_ip([m.rect for m in self.handlers.values()])
         else:
             # Just a case to document that the origin MapHandler was not yet
             # added, so this MapHandler is simply squirreled away to be
@@ -488,7 +486,7 @@ class SuperMap(object):
     
     def get_objects(self, supermap_range):
         tiles_per_handler = {}
-        for name, tile_range in list(supermap_range.items()):
+        for name, tile_range in supermap_range.items():
             map_handler = self.get_handler(name)
             if map_handler.map:
                 tiles_per_handler[name] = map_handler.get_objects(tile_range)
@@ -560,7 +558,7 @@ class SuperMap(object):
         blit = camera.surface.blit
         cx, cy = camera_rect.topleft
         get_handler = self.get_handler
-        for name, layers in list(self.visible_objects.items()):
+        for name, layers in self.visible_objects.items():
             if not layers:
                 continue
             local_to_world = get_handler(name).local_to_world
@@ -622,7 +620,7 @@ def get_visible_cell_ids(rect, layers, max_speed=10):
     cell_ids = []
     for layer in layers:
         if layer.visible:
-            indices = layer.objects.intersect_indices(rect)
+            indices = layer.objects.intersect_cell_ids(rect)
             cell_ids.append(indices)
         else:
             cell_ids.append(empty_list)

@@ -84,15 +84,6 @@ Example non-blocking menu:
                 pass
 """
 
-__version__ = '$Id: popup_menu.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
-__all__ = [
-    'bg_color', 'hi_color', 'text_color', 'glint_color', 'shadow_color', 'margin',
-    'PopupMenu', 'NonBlockingPopupMenu', 'SubmenuLabel', 'MenuItem', 'Menu',
-]
-
-
 # PopupMenu
 # Version: v1.2.1
 # Description: A low-fuss, infinitely nested popup menu for pygame.
@@ -103,6 +94,15 @@ __all__ = [
 
 import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
+
+
+__version__ = '$Id: popup_menu.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
+
+__all__ = [
+    'bg_color', 'hi_color', 'text_color', 'glint_color', 'shadow_color', 'margin',
+    'PopupMenu', 'NonBlockingPopupMenu', 'SubmenuLabel', 'MenuItem', 'Menu',
+]
 
 
 # pygame must be initialized before we can create a Font.
@@ -600,7 +600,7 @@ if __name__ == '__main__':
     cursor = Cursor()
 
     def handle_menu(e):
-        print(('menu event: {0}.{1:d}: {2}'.format(e.name, e.item_id, e.text)))
+        print('menu event: {0}.{1:d}: {2}'.format(e.name, e.item_id, e.text))
         sys.stdout.flush()
         if e.name == 'Main':
             if e.text == 'Quit':

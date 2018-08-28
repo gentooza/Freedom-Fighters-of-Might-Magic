@@ -2,18 +2,18 @@
 # Source: http://www.pygame.org/project-Sub-pixel+surface-413-.html
 # No warranty provided by inclusion in Gummworld2.
 
-__all__ = ['SubPixelSurface']
-
-
 import sys
+
+import pygame
+from math import floor
+
+
+__all__ = ['SubPixelSurface']
 
 if sys.version_info[0] == 3:
     # This is dirty but range can be expensive with large sequences in
     # Python 2.
     xrange = range
-
-import pygame
-from math import floor
 
 
 class SubPixelSurface(object):
@@ -30,8 +30,8 @@ class SubPixelSurface(object):
 
         self.level = level
 
-        x_steps = [float(n) / self.level for n in range(self.level)]
-        y_steps = [float(n) / self.level for n in range(self.level)]
+        x_steps = [float(n) / self.level for n in xrange(self.level)]
+        y_steps = [float(n) / self.level for n in xrange(self.level)]
 
         self.surfaces = []
         for frac_y in y_steps:

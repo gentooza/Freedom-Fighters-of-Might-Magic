@@ -26,10 +26,7 @@ try:
   import pyganim
   import utils
   import paths
-  import gummworld2
-  from gummworld2 import Engine, State, BasicMap, SubPixelSurface, View, Vec2d
-  from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
-  from gummworld2 import context, model, spatialhash, toolkit
+  from gummworld2 import Vec2d
   from socket import *
   from pygame.locals import *
 except ImportError as err:

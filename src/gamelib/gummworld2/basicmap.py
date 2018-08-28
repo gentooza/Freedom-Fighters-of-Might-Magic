@@ -49,18 +49,17 @@ Alternatively State.save() and State.restore() can be used to facilitate this.
 """
 
 
-__version__ = '$Id: basicmap.py 427 2013-08-26 04:25:04Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
-
-__all__ = ['BasicMap', 'BasicLayer', 'collapse_layer', 'blit_layer']
-
-
 from functools import reduce
 
 import pygame
 
 from gummworld2 import spatialhash
+
+
+__version__ = '$Id: basicmap.py 427 2013-08-26 04:25:04Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
+
+__all__ = ['BasicMap', 'BasicLayer', 'collapse_layer', 'blit_layer']
 
 
 class BasicMap(object):
@@ -84,7 +83,7 @@ class BasicMap(object):
     
     def get_layers(self, which_layers=None):
         if not which_layers:
-            which_layers = list(range(len(self.layers)))
+            which_layers = range(len(self.layers))
         return [L for i, L in enumerate(self.layers) if i in which_layers]
 
     # This is broke, and I haven't gotten any bug reports. Probably no one is using it.
@@ -110,13 +109,13 @@ class BasicMap(object):
         if collapse <= (1, 1):
             return
         if which_layers is None:
-            which_layers = list(range(len(self.layers)))
+            which_layers = range(len(self.layers))
         for layeri in which_layers:
             self.layers[layeri].collapse(collapse)
     
     def merge_layers(self, which_layers=None):
         if which_layers is None:
-            which_layers = list(range(len(self.layers)))
+            which_layers = range(len(self.layers))
         if len(which_layers) < 2:
             return
         dest_layer = self.layers[which_layers[0]]
@@ -144,7 +143,7 @@ class BasicLayer(object):
         if cell_size is None:
             cell_size = max(self.tile_width, self.tile_height)
         self.rect = pygame.Rect(0, 0, self.pixel_width + 1, self.pixel_height + 1)
-        self.objects = spatialhash.SpatialHash(self.rect, cell_size)
+        self.objects = spatialhash.SpatialHash(cell_size)
         
         self.layeri = layer_index
         self.visible = True
@@ -153,7 +152,7 @@ class BasicLayer(object):
         self.objects.add(tile)
     
     def get_objects_in_rect(self, rect):
-        return self.objects.intersect_objects(rect)
+        return self.objects.intersect_entities(rect)
     
     def collapse(self, collapse=(1, 1)):
         if collapse <= (1, 1):
@@ -201,7 +200,7 @@ def collapse_layer(old_layer, new_layer, num_tiles=(2, 2)):
         mh += 1
     # Poke the right values into new_layer.
     cell_size = max(tw, th) * 2
-    new_layer.objects = spatialhash.SpatialHash(old_layer.rect, cell_size)
+    new_layer.objects = spatialhash.SpatialHash(cell_size)
     new_layer.width = mw
     new_layer.height = mh
     new_layer.tile_width = tw
@@ -211,7 +210,7 @@ def collapse_layer(old_layer, new_layer, num_tiles=(2, 2)):
     for y in range(0, mh * th, th):
         for x in range(0, mw * tw, tw):
             query_rect.topleft = x, y
-            sprites = old_layer.objects.intersect_objects(query_rect)
+            sprites = old_layer.objects.intersect_entities(query_rect)
             if len(sprites) != num_tiles.x * num_tiles.y:
                 for s in sprites:
                     new_layer.add(s)

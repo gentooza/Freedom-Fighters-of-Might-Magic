@@ -18,33 +18,33 @@
 # Compatible: Python 2.7, Python 3.2
 
 """
-Gummworld2 is designed as a light pygame framework for a scrolling game, where
-the map is larger than the display. It emphasizes simplicity, freedom, and
-performance.
+Gummworld2 is designed as a pygame framework for a scrolling game, where
+the map is larger than the display. It emphasizes performance.
 """
 
 """__init__.py - Package initializer for Gummworld2."""
-
-__version__ = '$Id: __init__.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
 
 import os
 import sys
 
 
+__version__ = '$Id: __init__.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
 
-# Unbuffered IO for Python 2.6, 2.7 , 3.X
-buf_arg = 0
-if sys.version_info[0] == 3:
-    buf_arg = 1
-    os.environ['PYTHONUNBUFFERED'] = '1'
-else:
+
+# Unbuffered IO for Python 2.6, 2.7, and 3.x
+try:
+    buf_arg = 0
+    if sys.version_info[0] == 3:
+        buf_arg = 1
+        os.environ['PYTHONUNBUFFERED'] = '1'
     sys.stdout.flush()
     sys.stderr.flush()
-
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'a', buf_arg)
     sys.stderr = os.fdopen(sys.stderr.fileno(), 'a', buf_arg)
+except Exception as e:
+    print('gummworld2.__init__: {}'.format(e))
+    print('gummworld2.__init__: non-fatal: could not enable unbuffered stdio')
 
 del os, sys
 
@@ -58,11 +58,12 @@ __all__ = [
     'context',
     'model',
     'data',
+    'hudlight',
     'geometry',
+    'pygametext',
     'pygame_utils',
     'popup_menu',
     'state',
-    'ui',
     'toolkit',
     'basicmap',
     'tiledmap',
@@ -81,13 +82,14 @@ __all__ = [
     'GameClock',
     'SubPixelSurface',
     'PopupMenu',
-    'HUD', 'Stat', 'Statf',
+    # 'HUD', 'Stat', 'Statf',
+    'HUD', 'HUDBadArgs', 'HUDNameNotFound', 'HUDNameExists', 'set_font_template',
     'run', 'Engine', 'NO_WORLD', 'SIMPLE_WORLD',
 ]
 
 from gummworld2 import version
 if __debug__:
-    print(('gummworld2 v{0} loading...'.format(version.version)))
+    print('gummworld2 v{0} loading...'.format(version.version))
 
 # Classes
 from .vec2d import Vec2d
@@ -106,11 +108,11 @@ from .tiledmap import TiledMap
 from .supermap import SuperMap, MapHandler
 from .camera import Camera
 from .gameclock import GameClock
+from .hudlight import HUD, set_font_template
 from .subpixel import SubPixelSurface
 from .popup_menu import PopupMenu
-from .ui import HUD, Stat, Statf
 
 from .engine import run, Engine, NO_WORLD, SIMPLE_WORLD
 
 if __debug__:
-    print(('gummworld2 v{0} loaded'.format(version.version)))
+    print('gummworld2 v{0} loaded'.format(version.version))

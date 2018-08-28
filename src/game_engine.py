@@ -27,8 +27,7 @@ import pygame
 from pygame.locals import *
 
 import gummworld2
-from gummworld2 import context, data, model, geometry, toolkit, ui,Engine, State, TiledMap, BasicMapRenderer, Vec2d, Statf
-from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
+from gummworld2 import Engine, Vec2d, TiledMap, data, State, BasicMapRenderer, toolkit, geometry
 
 import utils
 import objects
@@ -50,7 +49,6 @@ BACKGROUND = (20,20,20)
 katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
 sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
 heroes = {'katrin':katrin,'sandro':sandro}
-
 
 
 class gameEngine(Engine):
@@ -127,24 +125,25 @@ class gameEngine(Engine):
         self.dirty_rect = Rect(self.avatar.rect)
         self.renderer.set_dirty(self.dirty_rect)
 
+        # Make the hud.
+        self.hud = toolkit.make_default_hud(theme='vera')
         # I like huds.
-        ui.text_color = Color('black')
-        toolkit.make_hud()
-        State.hud.add('Max FPS',
-                      Statf(State.hud.next_pos(), 'Max FPS {:.0f}',
-                            callback=lambda: (State.clock.max_fps,), interval=1.0))
-        State.hud.add('Use Wait',
-                      Statf(State.hud.next_pos(), 'Use Wait {}',
-                            callback=lambda: (State.clock.use_wait,), interval=1.0))
-        State.hud.add('Tile Size',
-                      Statf(State.hud.next_pos(), 'Tile Size {} pixels (key={})',
-                            callback=lambda: (self.renderer.tile_size, State.camera.rect.w // self.renderer.tile_size),
-                            interval=1.0))
+        #toolkit.make_hud()
+        #State.hud.add('Max FPS',
+        #              Statf(State.hud.next_pos(), 'Max FPS {:.0f}',
+        #                    callback=lambda: (State.clock.max_fps,), interval=1.0))
+        #State.hud.add('Use Wait',
+        #              Statf(State.hud.next_pos(), 'Use Wait {}',
+        #                    callback=lambda: (State.clock.use_wait,), interval=1.0))
+        #State.hud.add('Tile Size',
+        #              Statf(State.hud.next_pos(), 'Tile Size {} pixels (key={})',
+        #                    callback=lambda: (self.renderer.tile_size, State.camera.rect.w // self.renderer.tile_size),
+        #                    interval=1.0))
 
 
         #create world with map size and the cell size
         self.cell_size = 60
-        self.world = ffmm_spatialhash.game_SpatialHash(worldmap.rect, self.cell_size)
+        self.world = ffmm_spatialhash.game_SpatialHash(self.cell_size)
         #  no idea
         #self.set_state()
         #load entities from map, I think here we see collision rects, i.e.
@@ -202,11 +201,7 @@ class gameEngine(Engine):
 
         # Use the renderer.
         self.renderer = BasicMapRenderer(self.map, max_scroll_speed=State.speed)
-        
-        # I like huds.
-        toolkit.make_hud()
-        State.clock.schedule_interval(State.hud.update, 1.0)
-     
+             
         #game interface!
         self.interface = game_interface.gameInterface(State.screen, self.parameters)
         #populating game interface
@@ -255,7 +250,7 @@ class gameEngine(Engine):
         self.anim_creatures()
         ###
         #hud
-        State.hud.update(dt)
+        self.hud.update()
         ###
         #steps
         
@@ -466,9 +461,10 @@ class gameEngine(Engine):
         self.draw_renderer()
         if False:
            self.draw_debug()
-        State.hud.draw()
         self.draw_steps()
         self.draw_interface()
+        # Draw the hud.
+        self.hud.draw(State.screen.surface)
         State.screen.flip()
 
     def draw_interface(self):

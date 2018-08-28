@@ -129,13 +129,6 @@ of large scroll steps.
 """
 
 
-__version__ = '$Id: basicmaprenderer.py 433 2014-03-21 03:39:35Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
-
-__all__ = ['BasicMapRenderer', 'BasicMapRendererTile']
-
-
 import sys
 
 if sys.version_info[0] == 3:
@@ -145,9 +138,15 @@ if sys.version_info[0] == 3:
 
 
 import pygame
-from pygame.locals import *
+from pygame import Rect
 
 from gummworld2 import State, BasicMap, Vec2d
+
+
+__version__ = '$Id: basicmaprenderer.py 433 2014-03-21 03:39:35Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
+
+__all__ = ['BasicMapRenderer', 'BasicMapRendererTile']
 
 
 class BasicMapRenderer(object):
@@ -164,7 +163,7 @@ class BasicMapRenderer(object):
         self._basic_map = basic_map
         self._rect = Rect(State.camera.view.rect)
         self._max_scroll_speed = max_scroll_speed
-        
+
         self._tiles = {}
         self._visible_tiles = []
         
@@ -183,8 +182,8 @@ class BasicMapRenderer(object):
 
     def set_rect(self, **kwargs):
         """set the world location of the renderer's view rect"""
-        ## may be an opportunity here for a memoization performance gain to
-        ## keep tiles if the move does not select a new region
+        # may be an opportunity here for a memoization performance gain to
+        # keep tiles if the move does not select a new region
         del self._visible_tiles[:]
         for k in kwargs:
             if k not in self._allowed_rect:
@@ -192,7 +191,7 @@ class BasicMapRenderer(object):
             setattr(self._rect, k, kwargs[k])
         self.get_tiles()
         del self.dirty_rects[:]
-    
+
     @property
     def max_scroll_speed(self):
         return self._max_scroll_speed
@@ -280,8 +279,8 @@ class BasicMapRenderer(object):
         Y = Y // SIZE * SIZE
         TILES = self._tiles
         get_tile = TILES.get
-        for x in range(X, X + W + SIZE, SIZE):
-            for y in range(Y, Y + H + SIZE, SIZE):
+        for x in xrange(X, X + W + SIZE, SIZE):
+            for y in xrange(Y, Y + H + SIZE, SIZE):
                 idx = x, y
                 if idx not in TILES:
                     tile = BasicMapRendererTile(idx, SIZE, self)
@@ -310,7 +309,7 @@ class BasicMapRenderer(object):
         queue = self._examine_queue
         tiles = self._tiles
         if not queue:
-            queue[:] = list(tiles.values())
+            queue[:] = tiles.values()
         stamp = self._view_count
         dead = self._dead
         lifespan = self._lifespan
@@ -384,7 +383,7 @@ def _get_visible_cell_ids(camera, map_, query_rect):
     cell_ids = []
     for layer in map_.layers:
         if layer.visible:
-            cell_ids.append(layer.objects.intersect_indices(query_rect))
+            cell_ids.append(layer.objects.intersect_cell_ids(query_rect))
         else:
             cell_ids.append(empty_list)
     return cell_ids
@@ -396,11 +395,12 @@ def _get_objects_in_cell_ids(map_, cell_ids_per_layer):
         layer = map_.layers[layeri]
         if not layer.visible:
             continue
-        get_cell = layer.objects.get_cell
+        buckets = layer.objects.buckets
         objects = set()
         objects_update = objects.update
         for cell_id in cell_ids:
-            objects_update(get_cell(cell_id))
+            if cell_id in buckets:
+                objects_update(buckets[cell_id])
         objects = list(objects)
         sort_key = layer.objects.sort_key
         if sort_key:

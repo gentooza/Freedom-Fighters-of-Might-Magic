@@ -7,11 +7,11 @@
 Source: http://www.pygame.org/wiki/2DVectorClass
 """
 
-__all__ = ['Vec2d']
-
-
 import operator
 import math
+
+
+__all__ = ['Vec2d']
 
 
 class Vec2d(object):
@@ -37,7 +37,7 @@ class Vec2d(object):
         elif key == 1:
             return self.y
         elif isinstance(key, slice):
-            ## Python 3
+            # Python 3
             return self.x, self.y
         else:
             raise IndexError("Invalid subscript " + str(key) + " to Vec2d")
@@ -48,18 +48,18 @@ class Vec2d(object):
         elif key == 1:
             self.y = value
         elif isinstance(key, slice):
-            ## Python 3
+            # Python 3
             self.x = value[0]
             self.y = value[1]
         else:
             raise IndexError("Invalid subscript " + str(key) + " to Vec2d")
     
     def __getslice__(self, i, j):
-        ## Deprecated in Python 3 - see __getitem__.
+        # Deprecated in Python 3 - see __getitem__.
         return [self.x, self.y][i:j]
     
     def __setslice__(self, i, j, seq):
-        ## Deprecated in Python 3 - see __setitem__.
+        # Deprecated in Python 3 - see __setitem__.
         me = [self.x, self.y]
         me[i:j] = seq
         self.x, self.y = me
@@ -81,7 +81,7 @@ class Vec2d(object):
         else:
             return True
  
-    def __bool__(self):
+    def __nonzero__(self):
         # Python 2.7 - see __bool__ for Python 3
         return bool(self.x or self.y)
  
@@ -378,7 +378,7 @@ class Vec2d(object):
         self.x, self.y = dict
         
 ########################################################################
-## Unit Testing                                                       ##
+# Unit Testing                                                         #
 ########################################################################
 if __name__ == "__main__":
  
@@ -499,7 +499,7 @@ if __name__ == "__main__":
             self.assertEqual(testvec, loaded_vec)
         
         p = Vec2d(1,2)
-        print((p[:]))
+        print(p[:])
     
     ####################################################################
     unittest.main()

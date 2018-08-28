@@ -24,18 +24,7 @@ See basicmap module for the basic docs.
 These classes add support for Tiled maps loaded by tiletmxloader.
 """
 
-__version__ = '$Id: tiledmap.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
-__all__ = ['TiledMap', 'TiledLayer']
-
-
 import sys
-
-if sys.version_info[0] == 3:
-    # This is dirty but range can be expensive with large sequences in
-    # Python 2.
-    xrange = range
 
 import pygame
 
@@ -44,6 +33,17 @@ from tiledtmxloader.helperspygame import ResourceLoaderPygame
 
 from gummworld2 import spatialhash
 from gummworld2.basicmap import BasicMap, collapse_layer, blit_layer
+
+
+__version__ = '$Id: tiledmap.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
+
+__all__ = ['TiledMap', 'TiledLayer']
+
+if sys.version_info[0] == 3:
+    # This is dirty but range can be expensive with large sequences in
+    # Python 2.
+    xrange = range
 
 
 class TiledMap(BasicMap):
@@ -101,8 +101,6 @@ class TiledMap(BasicMap):
 class TiledLayer(object):
     
     def __init__(self, parent_map, layer, layeri):
-        import sys
-        
         self.parent_map = parent_map
         self.is_object_group = layer.is_object_group
         self.name = layer.name
@@ -120,12 +118,10 @@ class TiledLayer(object):
             self.opacity = layer.opacity
         cell_size = max(self.tile_width, self.tile_height)
         self.rect = pygame.Rect(0,0, self.pixel_width+1, self.pixel_height+1)
-        self.objects = spatialhash.SpatialHash(self.rect, cell_size)
+        self.objects = spatialhash.SpatialHash(cell_size)
         
         self.layeri = layeri
-        #added by gentooza
-        self.layer = layer
-        ####
+        
         self.name = layer.name
         self.properties = layer.properties
         self.visible = layer.visible
@@ -134,9 +130,7 @@ class TiledLayer(object):
         self.objects.add(tile)
     
     def get_objects_in_rect(self, rect):
-        #gentooza
-        #intersect_rect -> intersect_objects
-        return self.objects.intersect_objects(rect)
+        return self.objects.intersect_entities(rect)
     
     def __len__(self):
         return len(self.objects.cell_ids)
@@ -195,8 +189,8 @@ def _load_tiled_tmx_map(tmx_map, gummworld_map, load_invisible=True):
                 sprite.properties = obj.properties
                 gummworld_layer.add(sprite)
         else:
-            for ypos in range(0, layer.height):
-                for xpos in range(0, layer.width):
+            for ypos in xrange(0, layer.height):
+                for xpos in xrange(0, layer.width):
                     x = (xpos + layer.x) * layer.tilewidth
                     y = (ypos + layer.y) * layer.tileheight
                     img_idx = layer.content2D[xpos][ypos]
@@ -206,11 +200,11 @@ def _load_tiled_tmx_map(tmx_map, gummworld_map, load_invisible=True):
                         offx,offy,tile_img = resource.indexed_tiles[img_idx]
                         screen_img = tile_img
                     except KeyError:
-                        print(('KeyError: {0} {1}'.format(img_idx,(xpos,ypos))))
+                        print('KeyError: {0} {1}'.format(img_idx,(xpos,ypos)))
                         continue
                     sprite = Sprite()
-                    ## Note: alpha conversion can actually kill performance.
-                    ## Do it only if there's a benefit.
+                    # Note: alpha conversion can actually kill performance.
+                    # Do it only if there's a benefit.
 #                    if convert_alpha:
 #                        if screen_img.get_alpha():
 #                            screen_img = screen_img.convert_alpha()
@@ -224,7 +218,4 @@ def _load_tiled_tmx_map(tmx_map, gummworld_map, load_invisible=True):
                     sprite.image = screen_img
                     sprite.rect = screen_img.get_rect(topleft=(x + offx, y + offy))
                     sprite.name = xpos,ypos
-                    #gentooza
-                    sprite.img_idx = img_idx
-                    #end gentooza
                     gummworld_layer.add(sprite)

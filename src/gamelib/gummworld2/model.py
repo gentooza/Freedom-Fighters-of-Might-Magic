@@ -19,14 +19,13 @@
 
 """model.py - Physics model for Gummworld2."""
 
-__version__ = '$Id: model.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011-2014'
-
-
 import pygame
 
-from gummworld2 import State, Vec2d, data
+from gummworld2 import Vec2d
 
+
+__version__ = '$Id: model.py 407 2013-08-12 15:11:30Z stabbingfinger@gmail.com $'
+__author__ = 'Gummbum, (c) 2011-2014'
 
 __all__ = ['NoWorld', 'Object', 'World']
 
@@ -68,7 +67,7 @@ class Object(object):
         pass
     
     def worlds(self):
-        return list(self._worlds.keys())
+        return self._worlds.keys()
     
     def kill(self):
         for w in self._worlds:
@@ -107,7 +106,7 @@ class World(object):
                 del o._worlds[self]
     
     def objects(self):
-        return list(self._object_dict.keys())
+        return self._object_dict.keys()
     
     def step(self, dt):
         for o in self.objects():
@@ -119,7 +118,7 @@ class World(object):
     def __contains__(self, obj):
         return obj in self._object_dict
     
-    def __bool__(self):
+    def __nonzero__(self):
         return len(self._object_dict) != 0
     
     def __len__(self):
