@@ -32,7 +32,6 @@ from gummworld2 import context, data, model, geometry, toolkit,Engine, State, Ti
 from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
-import ffmm_spatialhash
 import utils
 
 

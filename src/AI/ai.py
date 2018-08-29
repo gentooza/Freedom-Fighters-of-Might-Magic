@@ -80,16 +80,14 @@ class computerPlayer:
    the enemy situation, his strength, our strength'''
    def flee_attack(self,hero,enemy_hero,world,terrain_layer,collision_layer,avatar_layer):
        #print('computer hero position:',hero.position,' human hero position:',enemy_hero.position)
-       row,col = world.get_grid_by_worldcoordinates(hero.position[0],hero.position[1])
+       col,row = world.get_cell_id(hero.position[0],hero.position[1])
        print('computer hero position:',row,col)
-       row,col = world.get_grid_by_worldcoordinates(enemy_hero.position[0],enemy_hero.position[1])
+       col,row = world.get_cell_id(enemy_hero.position[0],enemy_hero.position[1])
        print('human hero position:',row,col)   
        final_cell_id = self.path.pos2steps(hero.position,enemy_hero.position,world,terrain_layer,collision_layer,avatar_layer)
        print('distance:')
        print(len(self.path.route))
        print('complete path:')
-       for element_id,element_G, element_type in self.path.route:
-           print('col and row (y,x):',world.get_cell_grid(element_id))
        if len(self.path.route) <= self.attackRatius and hero.strength > enemy_hero.strength:
           #attack
           print('attack!')

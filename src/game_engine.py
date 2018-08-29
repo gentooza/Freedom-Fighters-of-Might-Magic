@@ -27,14 +27,13 @@ import pygame
 from pygame.locals import *
 
 import gummworld2
-from gummworld2 import Engine, Vec2d, TiledMap, data, State, BasicMapRenderer, toolkit, geometry
+from gummworld2 import Engine, Vec2d, TiledMap, data, State, BasicMapRenderer, toolkit, geometry, SpatialHash
 
 from AI import path_finding
 
 import utils
 import objects
 import game_interface
-import ffmm_spatialhash
 import game_dynamics
 import pygbutton
 import sounds
@@ -144,7 +143,7 @@ class gameEngine(Engine):
 
         #create world with map size and the cell size
         self.cell_size = 60
-        self.world = ffmm_spatialhash.game_SpatialHash(self.cell_size)
+        self.world = SpatialHash(self.cell_size)
         #  no idea
         #self.set_state()
         #load entities from map, I think here we see collision rects, i.e.
@@ -376,10 +375,11 @@ class gameEngine(Engine):
         # Current position.
         camera = State.camera
         wx, wy = camera.target.position
-        cell_id = self.world.index_at(wx,wy)
+        cell_id = self.world.get_cell_id(wx,wy)
         x,y =self.world.get_cell_pos(cell_id)
         camera.target.position = y+self.cell_size/2,x+self.cell_size/2
-        row,col = self.world.get_cell_grid(cell_id)
+        col = cell_id[0]
+        row = cell_id[1]
         #print("actual position: ",wx,wy," inside the cell: ",cell_id," row and col: ",row,col) 
         #new situation of new cell
         if(row == 0 and move_y < 0):
@@ -391,31 +391,27 @@ class gameEngine(Engine):
         else:
            new_col = col + move_x
         #does it exist?
-        cell = self.world.get_cell_by_grid(new_col,new_row)
-        if(cell == None):
-           #doesnt exist
-           return
-        else:
-           cell_id = self.world.index(cell)
-           self.new_x,self.new_y = self.world.get_cell_pos(cell_id)
-           #collisions
-           if(self.collision_layer.get_objects_in_rect(pygame.Rect(self.new_x,self.new_y,self.cell_size,self.cell_size))):
-              self.new_x = 0
-              self.new_y = 0
-              return;
-           self.new_x += self.cell_size/2
-           self.new_y += self.cell_size/2
-           #movement cost
-           row,col = self.world.get_cell_grid(cell_id)
-           self.pc_mov_cost = path_finding.terrain_costs[self.terrain_layer.layer.content2D[row][col]]
-           #print(self.avatar.remaining_movement,self.pc_mov_cost)
-           self.avatar.remaining_movement -= self.pc_mov_cost
-           #print(self.avatar.remaining_movement)
+        cell_id = self.world.get_cell_id(int((new_col*self.cell_size)-1),int((new_row*self.cell_size)-1))
+        self.new_x,self.new_y = self.world.get_cell_pos(cell_id)
+        #collisions
+        if(self.collision_layer.get_objects_in_rect(pygame.Rect(self.new_x,self.new_y,self.cell_size,self.cell_size))):
+          self.new_x = 0
+          self.new_y = 0
+          return;
+        self.new_x += self.cell_size/2
+        self.new_y += self.cell_size/2
+        #movement cost
+        col = cell_id[0]
+        row = cell_id[1]
+        self.pc_mov_cost = path_finding.terrain_costs[self.terrain_layer.layer.content2D[row][col]]
+        #print(self.avatar.remaining_movement,self.pc_mov_cost)
+        self.avatar.remaining_movement -= self.pc_mov_cost
+        #print(self.avatar.remaining_movement)
            
-           #gummchange
-           self.move_to = Vec2d(self.new_x, self.new_y)
-           self.step = Vec2d(move_x, move_y)
-           #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
+        #gummchange
+        self.move_to = Vec2d(self.new_x, self.new_y)
+        self.step = Vec2d(move_x, move_y)
+        #print("to position: ",self.new_x,self.new_y," inside the cell: ",cell_id," row and col: ",row,col)
 
     def update_camera_position(self):
         ##debug

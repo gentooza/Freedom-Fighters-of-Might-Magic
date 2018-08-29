@@ -30,7 +30,6 @@ from gummworld2.geometry import RectGeometry, CircleGeometry, PolyGeometry
 
 import objects
 import game_interface
-import ffmm_spatialhash
 
 terrain_costs = {1 : 0.2 , 2 : 0.1, 3 : 0.5 , 4 : 0.1 , 5 : 0.2 , 6 : 1.0}
 
@@ -51,20 +50,24 @@ class path():
         collide_rect = Rect(x-10,y-10,80,80)
         adjacents = set()
         #objects = avatars_layer.get_objects_in_rect(collide_rect) THIS WORKS? PERHAPS IS FASTER THAN DE FOR LOOP AT THE BOTTOM
-        cells = world.intersect_indices(collide_rect)
+        cells = world.intersect_cell_ids(collide_rect)
         #print("adjacents!")
         for element in cells:
             cell_tmp = cell(element,orig_cell)
-            col,row = world.get_cell_grid(element)
-            o_col,o_row = world.get_cell_grid(orig_cell.id)
+            col = element[0]
+            row = element[1]
+            o_col = orig_cell.id[0]
+            o_row = orig_cell.id[1]
             if((col != o_col or row != o_row) and (row < terrain_layer.layer.width and col < terrain_layer.layer.height)): #neither we don't want to add the origin nor seek outside the map layers
                 #fixed cost
                 cell_tmp.G = terrain_costs[terrain_layer.layer.content2D[row][col]]
                 print("terrain layer:",terrain_layer.layer.content2D[row][col])
                 if(cell_tmp.G!=0): #if it's walkable      
                     #heuristic cost
-                    o_col,o_row = world.get_cell_grid(orig_cell.id)
-                    d_col,d_row = world.get_cell_grid(dest_cell.id)
+                    o_col = orig_cell.id[0]
+                    o_row = orig_cell.id[1]
+                    d_col = dest_cell.id[0]
+                    d_row = dest_cell.id[1]
                     #we don't want discrimine diagonals, they are kind, good people, and the most important, they have no more cost movement
                     row_difference = d_row-row
                     if(abs(row_difference) == 1):
@@ -80,7 +83,7 @@ class path():
                         #and if there is no other avatar or creature
                         occuped = False
                         for creature in avatars_layer:
-                            if cell_tmp.id == world.index_at(creature.position[0],creature.position[1]):
+                            if cell_tmp.id == world.get_cell_id(creature.position[0],creature.position[1]):
                                 occuped = True
                         if not occuped:
                             adjacents.add(cell_tmp)
@@ -153,20 +156,19 @@ class path():
        if(final_cell.id == None):
           return;
        #row,col = world.get_cell_grid(final_cell.id)
-       row,col = world.get_grid_by_worldcoordinates(pos[0],pos[1]) 
+       col,row = world.get_cell_id(pos[0],pos[1]) 
        if(collision_layer.layer.content2D[row][col] != 0):
           return None,None
        #origin
-       orig_cell = cell(world.index_at(orig_pos[0],orig_pos[1]),None)
+       orig_cell = cell(world.get_cell_id(orig_pos[0],orig_pos[1]),None)
        print('setting path from:(',orig_pos[0],',',orig_pos[1],') to (',pos[0],',',pos[1],')')
        #if destination is the same as origin, then, no path and return
        if(orig_cell.id == final_cell.id):
           final_cell.id = None
-          return path,None;
-       orig_row,orig_col = world.get_cell_grid(orig_cell.id)
-       x = orig_col
-       y = orig_row
-       idx= terrain_layer.layer.content2D[x][y]
+          return path,None
+       x = orig_cell.id[0]
+       y = orig_cell.id[1]
+       idx= terrain_layer.layer.content2D[int(x)][int(y)]
        orig_cell.G = idx
        x = col
        y = row
