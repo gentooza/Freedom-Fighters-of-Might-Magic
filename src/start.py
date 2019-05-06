@@ -49,7 +49,7 @@ class app:
         self.parameters = parameters
 
     def setDisplay(self):
-        os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '2'
+        os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '1'
         # self.screen =
         #     pygame.display.set_mode(self.resolution,pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode(self.parameters['resolution'])
