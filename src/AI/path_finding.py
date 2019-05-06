@@ -1,19 +1,25 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
+#
+# This file is part of Freedom Fighters of Might & Magic
+#
+# Copyright 2014-2019, Joaquín Cuéllar <joa.cuellar (at) riseup (dot) net>
+#
+# Freedom Fighters of Might & Magic is free software:
+# you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Freedom Fighters of Might & Magic is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Freedom Fighters of Might & Magic.
+# If not, see <https://www.gnu.org/licenses/>.
 
-#
-#  Freedom Fighters of Might & Magic
-#
-#  Copyright 2014-2015 by it's authors. 
-#
-#  Some rights reserved. See COPYING, AUTHORS.
-#  This file may be used under the terms of the GNU General Public
-#  License version 3.0 as published by the Free Software Foundation
-#  and appearing in the file COPYING included in the packaging of
-#  this file.
-#
-#  This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-#  WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-#
 import sys
 import cProfile, pstats
 

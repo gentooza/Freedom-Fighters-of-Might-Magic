@@ -1,20 +1,24 @@
-#! /usr/bin/env python
-# Copyright 2014-2018 by it's authors (see file AUTHORS)
+#!/usr/bin/env python3
 #
-# This file is part of .Freedom Fighters of Might & Magic
+# This file is part of Freedom Fighters of Might & Magic
 #
-# Freedom Fighters of Might & Magic is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation, 
-# either version 3 of the License, or (at your option) any later version.
+# Copyright 2014-2019, Joaquín Cuéllar <joa.cuellar (at) riseup (dot) net>
 #
-# Freedom Fighters of Might & Magic is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Freedom Fighters of Might & Magic is free software:
+# you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Freedom Fighters of Might & Magic is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Freedom Fighters of Might & Magic.  If not, see <https://www.gnu.org/licenses/>.
+# along with Freedom Fighters of Might & Magic.
+# If not, see <https://www.gnu.org/licenses/>.
 
 import pygame
 import subprocess
@@ -51,7 +55,7 @@ class Config_Manager:
         if (resolution[0] > 1024 or resolution[1] > 768):
             resolution = (1024, 768)
         if (resolution[0] < 800 or resolution[1] < 600):
-            resolution = (800, 600) 
+            resolution = (800, 600)
         try:
             fullscreen = cfg_fullscreen
         except:

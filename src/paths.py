@@ -1,26 +1,26 @@
-#!/usr/bin/env python
-
-# This file is part of Gummworld2.
+#!/usr/bin/env python3
 #
-# Gummworld2 is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
+# This file is part of Freedom Fighters of Might & Magic
+#
+# Copyright 2014-2019, Joaquín Cuéllar <joa.cuellar (at) riseup (dot) net>
+#
+# Freedom Fighters of Might & Magic is free software:
+# you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Gummworld2 is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+# Freedom Fighters of Might & Magic is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with Gummworld2.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with Freedom Fighters of Might & Magic.
+# If not, see <https://www.gnu.org/licenses/>.
 
-
-__version__ = '$Id: paths.py 273 2011-04-23 08:06:10Z stabbingfinger@gmail.com $'
-__author__ = 'Gummbum, (c) 2011'
-
-
-"""paths.py - Path setup for Gummworld2.
+"""paths.py - Path setup for FFMM.
 
 Import this at the start of your program to augment the python library path.
 """
