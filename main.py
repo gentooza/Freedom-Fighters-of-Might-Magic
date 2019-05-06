@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Copyright 2014-2018 by it's authors (see file AUTHORS)
