@@ -23,13 +23,11 @@
 """game_engine.py is the gummworld derived engine class for the ffmm
 
 """
+
 import sys
 import cProfile, pstats
-
-
-
 import pygame
-#from pygame.sprite import Sprite
+# from pygame.sprite import Sprite
 from pygame.locals import *
 
 import gummworld2
@@ -50,185 +48,174 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
-BACKGROUND = (20,20,20)
+BACKGROUND = (20, 20, 20)
 
-katrin =  {'name':'katrin','faction' : 'human','portrait': 'katrin','attack':2,'deffense':2,'magic_p':1,'magic_k':1}
-sandro =  {'name':'sandro','faction' : 'undead','portrait': 'sandro','attack':1,'deffense':0,'magic_p':2,'magic_k':2}
-heroes = {'katrin':katrin,'sandro':sandro}
+katrin = {'name': 'katrin', 'faction': 'human', 'portrait': 'katrin',
+          'attack': 2, 'deffense': 2, 'magic_p': 1, 'magic_k': 1}
+sandro = {'name': 'sandro', 'faction': 'undead', 'portrait': 'sandro',
+          'attack': 1, 'deffense': 0, 'magic_p': 2, 'magic_k': 2}
+heroes = {'katrin': katrin, 'sandro': sandro}
 
 
 class gameEngine(Engine):
-    
-    def __init__(self, parameters,gameSounds):
-        #playing sounds
+    def __init__(self, parameters, gameSounds):
+        # playing sounds
         self.gameSounds = gameSounds
-        self.gameSounds.playworld(True,0.6)
-        #setting parameters
+        self.gameSounds.playworld(True, 0.6)
+        # setting parameters
         resolution = Vec2d(parameters['resolution'])
-        
+
         self.parameters = parameters
         if(parameters['fullscreen']):
-           flags = pygame.FULLSCREEN
+            flags = pygame.FULLSCREEN
         else:
-           flags = 0
-        #creating instance of our avatar in screen
-        #self.avatar = objects.ourHero("horseman","horseman",(30, 30), (0,0))
-        #self.avatar.team = 1
-        #self.avatar.attr = katrin
-
-        #self.map is our map created with tile editor
-        #we load all information from map
+            flags = 0
+        # we load all information from map
         worldmap = TiledMap(data.filepath('map', 'test.tmx'))
-        #heores layer of the map edited with Tiled
+        # heores layer of the map edited with Tiled
         self.avatar_group = worldmap.layers[2]
         self.terrain_layer = worldmap.layers[0]
         self.collision_layer = worldmap.layers[1]
         self.objects_layer = worldmap.layers[3]
-        #loading factions
+        # loading factions
         self.factions = game_dynamics.factions(self.objects_layer)
 
         self.actual_team = self.factions.team.pop(0)
         self.avatar = self.actual_team.heroes.pop(0)
         self.avatar.remaining_movement = self.avatar.move_points
-        
-        #loading creatures
-        self.creatures = game_dynamics.creatures(self.objects_layer)
-        #for element in  self.terrain_layer.objects:
-        #   print(element.properties)
-       
-        ## Tell the renderer this layer needs to be sorted, and how to.
-        self.avatar_group.objects.sort_key = lambda o: o.rect.bottom
 
-        #engine initialization
+        # loading creatures
+        self.creatures = game_dynamics.creatures(self.objects_layer)
+        # for element in  self.terrain_layer.objects:
+        #   print(element.properties)
+        # Tell the renderer this layer needs to be sorted, and how to.
+        self.avatar_group.objects.sort_key = lambda o: o.rect.bottom
+        # Hide the busy Collision layer.
+        self.collision_layer.visible = False
+        # engine initialization
         #   camera target: our avatar
-        #Engine.__init__(self, caption=strcaption,camera_target= self.avatar,resolution=resolution,display_flags=pygame.FULLSCREEN,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, 833, 741))
-        Engine.__init__(self, caption=parameters['strcaption'],camera_target= self.avatar,resolution=resolution, display_flags=flags,map =worldmap, frame_speed=0,camera_view_rect=pygame.Rect(0, 27, self.parameters["resolution"][0]-183, self.parameters["resolution"][1]-27))
+        Engine.__init__(self, caption=parameters['strcaption'],
+                        camera_target=self.avatar,
+                        resolution=resolution,
+                        display_flags=flags,
+                        map=worldmap,
+                        frame_speed=0,)
+        # camera_view_rect=pygame.Rect(0, 27,
+        # self.parameters["resolution"][0]-183,
+        # self.parameters["resolution"][1]-27))
         # Conserve CPU.
         State.clock.use_wait = True
-
-        ## Insert avatars into the Fringe layer.
+        # Insert avatars into the Fringe layer.
         self.avatar_group.add(self.avatar)
-        #others avatars in actual team
+        # others avatars in actual team
         for avatars in self.actual_team.heroes:
-           self.avatar_group.add(avatars)
-        #others avatars in others teams
+            self.avatar_group.add(avatars)
+        # others avatars in others teams
         for teams in self.factions.team:
-           for avatars in teams.heroes:
-              self.avatar_group.add(avatars)
+            for avatars in teams.heroes:
+                self.avatar_group.add(avatars)
         for group in self.creatures.group:
             self.avatar_group.add(group.creature)
-       
         ##################
-        #Game dynamics
+        # Game dynamics
         self.endturn = False
         ###################
-        ## The renderer.
+        # The renderer.
         self.renderer = BasicMapRenderer(
-            worldmap, max_scroll_speed=State.speed)
-        ## New requirement. When renderer draws dynamic layers (e.g. Fringe)
-        ## we need to tell it to redraw the changed tiles. This also is done
-        ## in the draw cycle; see self.draw_renderer().
+                worldmap, max_scroll_speed=State.speed)
+        # New requirement. When renderer draws dynamic layers (e.g. Fringe)
+        # we need to tell it to redraw the changed tiles. This also is done
+        # in the draw cycle; see self.draw_renderer().
         self.dirty_rect = Rect(self.avatar.rect)
         self.renderer.set_dirty(self.dirty_rect)
 
         # Make the hud.
         self.hud = toolkit.make_default_hud(theme='vera')
-        # I like huds.
-        #toolkit.make_hud()
-        #State.hud.add('Max FPS',
-        #              Statf(State.hud.next_pos(), 'Max FPS {:.0f}',
-        #                    callback=lambda: (State.clock.max_fps,), interval=1.0))
-        #State.hud.add('Use Wait',
-        #              Statf(State.hud.next_pos(), 'Use Wait {}',
-        #                    callback=lambda: (State.clock.use_wait,), interval=1.0))
-        #State.hud.add('Tile Size',
-        #              Statf(State.hud.next_pos(), 'Tile Size {} pixels (key={})',
-        #                    callback=lambda: (self.renderer.tile_size, State.camera.rect.w // self.renderer.tile_size),
-        #                    interval=1.0))
 
-
-        #create world with map size and the cell size
+        # create world with map size and the cell size
         self.cell_size = 60
         self.world = SpatialHash(self.cell_size)
-        #  no idea
-        #self.set_state()
-        #load entities from map, I think here we see collision rects, i.e.
-        #removed temporally
-        #entities, tilesheets = toolkit.load_entities(data.filepath('map', 'mini2.entities'))
-        #for e in entities:
+        # no idea
+        # self.set_state()
+        # load entities from map, I think here we see collision rects, i.e.
+        # removed temporally
+        # entities, tilesheets = toolkit.load_entities(data.filepath('map',
+        #                                                             'mini2.entities'))
+        # for e in entities:
         #    State.world.add(e)
-        
         # Create a speed box for converting mouse position to destination
         # and scroll speed. 800x600 has aspect ratio 8:6.
         self.speed_box = geometry.Diamond(0, 0, 8, 6)
         self.speed_box.center = Vec2d(State.camera.rect.size) // 2
         self.max_speed_box = float(self.speed_box.width) / 2.0
-        
         # Mouse and movement state. move_to is in world coordinates.
         self.move_to = None
         self.move_to_G = 0
         self.speed = None
-        self.mouse_down = False #left click
-        self.mouse_down2 = False  #right click
+        self.mouse_down = False  # left click
+        self.mouse_down2 = False  # right click
         self.side_steps = []
-        self.faux_avatar = objects.ourHero("horseman","horseman",self.camera.target.position, (10,0),0)
+        self.faux_avatar = objects.ourHero("horseman",
+                                           "horseman",
+                                           self.camera.target.position,
+                                           (10, 0),
+                                           0)
         self.final_cell_id = None
         self.path = path_finding.path()
 
         self.mouse_reponse = 4
         self.iterator = 0
-        
+
         self.pathstep = None
-        self.laststeppath = None 
+        self.laststeppath = None
         self.cellstep = None
         self.lastcellstep = None
         self.lastcellG = 0
         self.cellG = 0
 
-
-        #keyboard managment
+        # keyboard managment
         self.key_down = False
         self.move_x = 0
         self.move_y = 0
         self.new_x = 0
         self.new_y = 0
-        self.step = Vec2d(0,0)
-        
-        #computer movement
-        self.pc_mov_cost = 0
+        self.step = Vec2d(0, 0)
 
+        # computer movement
+        self.pc_mov_cost = 0
 
         self.laststepx = 0
         self.laststepy = 0
-        
+
         State.show_world = False
         State.speed = 5
 
-
         # Use the renderer.
-        self.renderer = BasicMapRenderer(self.map, max_scroll_speed=State.speed)
-             
-        #game interface!
-        self.interface = game_interface.gameInterface(State.screen, self.parameters)
-        #populating game interface
+        self.renderer = BasicMapRenderer(self.map,
+                                         max_scroll_speed=State.speed)
+
+        # game interface!
+        self.interface = game_interface.gameInterface(State.screen,
+                                                      self.parameters)
+        # populating game interface
         self.populating_interface()
-    
-    #def setScreen(self, screen):
+
+    # def setScreen(self, screen):
     #    self.screen = screen
 
     def update(self, dt):
         """overrides Engine.update"""
-        #endturn
+        # endturn
         if self.actual_team.player == 'human':
-           if self.endturn and not self.avatar.movement:
-              self.endturn_fun()
+            if self.endturn and not self.avatar.movement:
+                self.endturn_fun()
         else:
-           #print('computer turn!')
-           if self.actual_team.end_turn and not self.avatar.movement:
-              self.actual_team.end_turn = 0
-              self.endturn_fun()
+            # print('computer turn!')
+            if self.actual_team.end_turn and not self.avatar.movement:
+                self.actual_team.end_turn = 0
+                self.endturn_fun()
         ###
-        #mouse and movement
+        # mouse and movement
         # If mouse button is held down update for continuous walking.
         if self.actual_team.player == 'human':
             if self.mouse_down:
@@ -236,12 +223,18 @@ class gameEngine(Engine):
             if self.mouse_down2:
                 self.popup(pygame.mouse.get_pos())
             self.update_mouse_movement()
-        #computer movements
+        # computer movements
         else:
             if(not self.avatar.movement):
-                move_x,move_y = self.actual_team.move_hero(self.avatar,State.world,self.avatar_group,self.terrain_layer,self.collision_layer,self.objects_layer)
-                print(move_x,move_y)
-                self.update_computer_movement(move_x,move_y)
+                move_x, move_y = self.actual_team.move_hero(
+                        self.avatar,
+                        State.world,
+                        self.avatar_group,
+                        self.terrain_layer,
+                        self.collision_layer,
+                        self.objects_layer)
+                print(move_x, move_y)
+                self.update_computer_movement(move_x, move_y)
             if self.mouse_down2:
                 self.popup(pygame.mouse.get_pos())
         ####### 
@@ -490,9 +483,10 @@ class gameEngine(Engine):
         #changed this to have the renderer refreshing all the camera surface ALWAYS
         # TO HAVE animated objects always
         #set dirty to refresh all objects in camera rectangle
-        dirty_rect.center = camera_center
-        renderer.set_dirty(camera_rect)
-        panning = True
+        if camera.target.rect.center != camera_center:
+            dirty_rect.center = camera_center
+            renderer.set_dirty(camera_rect)
+            panning = True
         
         # Set render's rect and draw the screen.
         renderer.set_rect(center=camera_center)
